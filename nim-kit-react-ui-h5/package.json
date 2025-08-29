@@ -1,0 +1,31 @@
+{
+  "name": "@xkit-yx/im-kit-react-ui-h5",
+  "private": true,
+  "version": "10.0.0",
+  "author": "null",
+  "scripts": {
+    "dev": "umi dev",
+    "build": "umi build",
+    "postinstall": "umi setup",
+    "setup": "umi setup",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@xkit-yx/im-store-v2": "^0.8.5",
+    "@xkit-yx/utils": "^0.7.2",
+    "classnames": "^2.5.1",
+    "dayjs": "^1.11.13",
+    "mitt": "^3.0.1",
+    "mobx": "^6.6.1",
+    "mobx-react": "^7.5.2",
+    "nim-web-sdk-ng": "^10.9.20",
+    "react-string-replace": "^1.1.0",
+    "react-virtualized": "^9.22.5",
+    "umi": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.33",
+    "@types/react-dom": "^18.0.11",
+    "typescript": "^5.0.3"
+  }
+}

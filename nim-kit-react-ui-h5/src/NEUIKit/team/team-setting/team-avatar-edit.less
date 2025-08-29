@@ -1,0 +1,72 @@
+.team-avatar-set-container {
+  height: 100%;
+  box-sizing: border-box;
+  background-color: #eff1f4;
+  overflow: hidden;
+
+  .team-avatar-container {
+    background: #ffffff;
+    height: 128px;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 10px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .avatar {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+  }
+
+  .avatar > .avatar-img-edit {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+  }
+
+  .avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .choose-picture {
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+  }
+
+  .team-avatar-arr-container {
+    height: 114px;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0 16px;
+    margin: 0 20px;
+    overflow: auto;
+  }
+
+  .tip {
+    font-size: 16px;
+    font-weight: normal;
+    margin-top: 15px;
+    margin-bottom: 24px;
+    color: #000;
+  }
+
+  .avatar-arr {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .avatar-arr .avatar-img {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+  }
+}

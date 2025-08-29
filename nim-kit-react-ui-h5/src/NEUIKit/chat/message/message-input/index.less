@@ -1,0 +1,233 @@
+.input-root {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  max-height: 300px;
+
+  .msg-input-wrapper {
+    width: 100%;
+    background-color: #eff1f3;
+    transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+    z-index: 999;
+    display: flex;
+    height: 55px;
+    align-items: center;
+    padding: 4px 0;
+    box-sizing: border-box;
+  }
+
+  .msg-input-input {
+    background-color: #fff;
+    font-size: 16px;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .input-inner {
+    flex: 1;
+  }
+
+  .msg-input-button {
+    flex: 1;
+  }
+
+  .msg-input-button.msg-input-loading {
+    animation: loadingCircle 1s infinite linear;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    margin-top: 4px;
+  }
+
+  .msg-input-button.msg-input-loading .loading {
+    width: 100%;
+    height: 100%;
+  }
+
+  .msg-ext {
+    overflow-y: auto;
+    width: 100%;
+    height: 300px;
+    background-color: #eff1f3;
+    z-index: 1;
+  }
+
+  .msg-emoji-panel {
+    overflow-y: auto;
+    width: 100%;
+    height: 246px;
+    background-color: #eff1f3;
+    z-index: 1;
+  }
+
+  .msg-audio-panel {
+    overflow-y: hidden;
+    width: 100%;
+    height: 300px;
+    background-color: #eff1f3;
+    z-index: 1;
+  }
+
+  .send-more-panel {
+    padding: 15px;
+    overflow-y: hidden;
+    width: 100%;
+    height: 300px;
+    background-color: #eff1f3;
+    z-index: 1;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+  }
+
+  .send-more-panel-item-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .send-more-panel-item-wrapper .send-more-panel-item {
+    background-color: #fff;
+    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+    justify-content: center;
+  }
+
+  .send-more-panel-item-wrapper .icon-text {
+    font-size: 12px;
+    color: #747475;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .reply-message-wrapper {
+    display: flex;
+    font-size: 13px;
+    background-color: #eff1f2;
+    height: 25px;
+    padding-top: 6px;
+    align-items: center;
+    color: #929299;
+  }
+
+  .reply-message-wrapper .reply-noFind {
+    width: fit-content;
+  }
+
+  .reply-message-wrapper .reply-to-colon {
+    flex-basis: 3px;
+    margin-right: 2px;
+  }
+
+  .reply-message-wrapper .reply-message-close {
+    flex-basis: 14px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+  }
+
+  .reply-message-wrapper .reply-message {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reply-message-wrapper .reply-title {
+    flex-basis: 30px;
+    white-space: nowrap;
+    margin-right: 5px;
+  }
+
+  .reply-message-wrapper .reply-to {
+    max-width: 120px;
+    flex: 0 0 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  .fake-input {
+    background-color: #fff;
+    height: 36px;
+    line-height: 36px;
+    font-size: 16px;
+    padding: 0 10px;
+    border-radius: 6px;
+  }
+
+  .input-emoji-icon,
+  .input-send-more {
+    width: 36px;
+    text-align: center;
+    height: 55px;
+    line-height: 55px;
+  }
+
+  .input-text {
+    white-space: nowrap;
+    color: #000;
+  }
+
+  .input-placeholder {
+    background-color: #fff;
+    height: 36px;
+    line-height: 36px;
+    font-size: 16px;
+    border-radius: 6px;
+    color: #c0c4cc;
+  }
+
+  .file-picker-wrapper {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    z-index: 1;
+  }
+
+  .file-picker-wrapper .files-button {
+    width: 60px;
+    height: 60px;
+  }
+
+  .send-more-panel-item {
+    position: relative;
+    background-color: #fff;
+    border-radius: 8px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    margin: 0 15px;
+    justify-content: center;
+  }
+
+  .file-input-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+  }
+}
+
+@keyframes loadingCircle {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

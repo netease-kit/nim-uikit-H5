@@ -1,0 +1,109 @@
+.nim-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+  height: 32px;
+  white-space: nowrap;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid #dcdfe6;
+  color: #606266;
+  text-align: center;
+  box-sizing: border-box;
+  outline: none;
+  margin: 0;
+  transition: 0.1s;
+  font-weight: 500;
+  padding: 8px 15px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.nim-button--primary {
+  color: #fff;
+  background-color: #409eff;
+  border-color: #409eff;
+}
+
+.nim-button--primary:hover {
+  background: #66b1ff;
+  border-color: #66b1ff;
+  color: #fff;
+}
+
+.nim-button--success {
+  color: #fff;
+  background-color: #67c23a;
+  border-color: #67c23a;
+}
+
+.nim-button--success:hover {
+  background: #85ce61;
+  border-color: #85ce61;
+  color: #fff;
+}
+
+.nim-button--warning {
+  color: #fff;
+  background-color: #e6a23c;
+  border-color: #e6a23c;
+}
+
+.nim-button--warning:hover {
+  background: #ebb563;
+  border-color: #ebb563;
+  color: #fff;
+}
+
+.nim-button--danger {
+  color: #fff;
+  background-color: #f56c6c;
+  border-color: #f56c6c;
+}
+
+.nim-button--danger:hover {
+  background: #f78989;
+  border-color: #f78989;
+  color: #fff;
+}
+
+.nim-button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nim-button--disabled:hover {
+  color: #606266;
+  border-color: #dcdfe6;
+  background-color: #fff;
+}
+
+.nim-button--block {
+  display: block;
+  width: 100%;
+}
+
+.nim-button--round {
+  border-radius: 20px;
+}
+
+.nim-button--plain {
+  background: transparent;
+}
+
+.nim-button--plain.nim-button--primary {
+  color: #409eff;
+}
+
+.nim-button--plain.nim-button--success {
+  color: #67c23a;
+}
+
+.nim-button--plain.nim-button--warning {
+  color: #e6a23c;
+}
+
+.nim-button--plain.nim-button--danger {
+  color: #f56c6c;
+}

@@ -1,0 +1,109 @@
+/* 主容器 */
+.my-detail-wrapper {
+  height: 100%;
+  box-sizing: border-box;
+  background-color: rgb(246, 248, 250);
+
+  /* 用户信息项容器 */
+  .my-detail-item-wrapper {
+    margin: 10px 15px;
+    overflow: hidden;
+    border-radius: 5px;
+  }
+
+  /* 用户信息项 */
+  .my-detail-item {
+    display: flex;
+    height: 50px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    background-color: #fff;
+  }
+
+  /* 用户信息项左侧 */
+  .item-left {
+    font-size: 16px;
+    flex: 0 0 50px;
+    color: #000;
+  }
+
+  /* 用户信息项右侧 */
+  .item-right {
+    flex: 1;
+    text-align: right;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: #a6adb6;
+    overflow: hidden;
+  }
+
+  /* 邮箱文本 */
+  .email {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: right;
+  }
+
+  /* 昵称文本 */
+  .nick {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #a6adb6;
+  }
+
+  /* 箭头图标 */
+  .arrow {
+    margin-left: 15px;
+    line-height: 0;
+  }
+
+  /* 分隔线 */
+  .box-shadow {
+    height: 1px;
+    background: none;
+    box-shadow: 0 1px 0 rgb(233, 231, 231);
+  }
+
+  /* 签名容器 */
+  .my-detail-signature {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    margin: 10px 15px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-sizing: border-box;
+  }
+
+  /* 签名标题 */
+  .signature-key {
+    flex: 0 0 80px;
+    color: #000;
+    font-size: 16px;
+  }
+
+  /* 签名文本 */
+  .signature-text {
+    text-align: right;
+    font-size: 15px;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #a6adb6;
+  }
+
+  /* 签名箭头 */
+  .my-detail-signature .arrow {
+    margin-left: 15px;
+    flex: 0 0 10px;
+    color: #a6adb6;
+    font-size: 15px;
+  }
+}

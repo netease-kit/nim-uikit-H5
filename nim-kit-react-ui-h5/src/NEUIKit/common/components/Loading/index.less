@@ -1,0 +1,60 @@
+.nim-loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.nim-loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nim-loading-circular {
+  width: 42px;
+  height: 42px;
+  animation: nim-loading-rotate 2s linear infinite;
+}
+
+.nim-loading-path {
+  stroke-dasharray: 90, 150;
+  stroke-dashoffset: 0;
+  stroke-width: 2;
+  stroke: #409eff;
+  stroke-linecap: round;
+  animation: nim-loading-dash 1.5s ease-in-out infinite;
+}
+
+.nim-loading-text {
+  margin-top: 10px;
+  color: #409eff;
+  font-size: 14px;
+}
+
+@keyframes nim-loading-rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes nim-loading-dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -40px;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -120px;
+  }
+}

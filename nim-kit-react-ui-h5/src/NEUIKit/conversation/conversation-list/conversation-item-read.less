@@ -1,0 +1,58 @@
+.nim-p2p-msg-receipt-wrapper {
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  line-height: 18px;
+  vertical-align: bottom;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 已读图标容器 */
+  .icon-read-wrapper {
+    margin: 0 3px 0 0;
+    width: 18px;
+    height: 18px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  /* 扇形进度容器 */
+  .sector {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #4c84ff;
+    width: 14px;
+    height: 14px;
+    background-color: #fff;
+    border-radius: 50%;
+    margin: 0 3px 0 0;
+  }
+
+  /* 扇形进度遮罩层1 */
+  .cover-1 {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #4c84ff;
+    transform-origin: right;
+  }
+
+  /* 扇形进度遮罩层2 */
+  .cover-2 {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background-color: #fff;
+  }
+
+  /* 扇形进度遮罩层3 */
+  .cover-3 {
+    right: 0;
+    background-color: #4c84ff;
+  }
+}

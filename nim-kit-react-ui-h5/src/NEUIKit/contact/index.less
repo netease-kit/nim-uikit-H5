@@ -1,0 +1,150 @@
+/* 主容器 */
+.contact-list-container {
+  height: 100%;
+  box-sizing: border-box;
+  background-color: #fff;
+  overflow-y: auto;
+
+  /* 导航栏 */
+  .navigation-bar {
+    height: 60px;
+    border-bottom: 1px solid #e9eff5;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--status-bar-height, 0);
+  }
+
+  /* Logo 容器 */
+  .logo-box {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 500;
+    color: #000;
+  }
+
+  /* 按钮盒子 */
+  .button-box {
+    position: relative;
+  }
+
+  /* 联系人列表 */
+  .contact-list {
+    height: calc(100% - 60px - var(--status-bar-height, 0));
+    box-sizing: border-box;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 60px;
+    background-color: #fff;
+  }
+
+  /* 联系人项目内容 */
+  .contact-item-content {
+    padding-bottom: 5px;
+    background-color: #eff1f4;
+  }
+
+  /* 联系人项目 */
+  .contact-item {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: #fff;
+    position: relative;
+  }
+
+  /* 联系人项目边框 */
+  .contact-item:not(:last-child) {
+    border-bottom: 1px solid #f5f8fc;
+  }
+
+  /* 联系人图标基础样式 */
+  .contact-item-icon {
+    height: 42px;
+    width: 42px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 39px;
+    font-size: 20px;
+    color: #fff;
+  }
+
+  /* 验证图标 */
+  .contact-valid-icon {
+    background-color: #60cfa7;
+  }
+
+  /* 黑名单图标 */
+  .contact-blacklist-icon {
+    background-color: #53c3f4;
+  }
+
+  /* 群组图标 */
+  .contact-group-icon {
+    background-color: #be65d9;
+  }
+
+  /* 联系人标题 */
+  .contact-item-title {
+    margin-left: 12px;
+    font-size: 16px;
+    color: #000;
+    flex: 1;
+  }
+
+  /* 更多图标 */
+  .more-icon {
+    margin: 0 16px;
+    color: #999999;
+  }
+
+  /* 下拉遮罩 */
+  .dropdown-mark {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+
+  /* 下拉容器 */
+  .dropdown-container {
+    position: absolute;
+    right: 0;
+    min-width: 122px;
+    min-height: 40px;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+    box-shadow: 0px 4px 7px rgba(133, 136, 140, 0.25);
+    border-radius: 8px;
+    z-index: 99;
+  }
+
+  /* 添加菜单列表 */
+  .add-menu-list {
+    padding: 15px 10px;
+    color: #000;
+  }
+
+  /* 添加菜单项 */
+  .add-menu-item {
+    white-space: nowrap;
+    font-size: 16px;
+    padding-left: 5px;
+    margin-bottom: 10px;
+    height: 30px;
+    line-height: 30px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* 最后一个菜单项 */
+  .add-menu-item:last-child {
+    margin-bottom: 0;
+  }
+}

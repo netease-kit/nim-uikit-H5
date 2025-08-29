@@ -1,3 +1,4 @@
+.DS_Store
 coverage/
 node_modules
 .idea
@@ -18,3 +19,5 @@ storybook-static
 build_tools
 *-debug.log
 miniprogram_dist
+
+.vscode

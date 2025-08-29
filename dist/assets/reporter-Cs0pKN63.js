@@ -1,1 +1,0 @@
-import{E as r}from"./index.esm-CPwIBr9T.js";import{i as t}from"./package-DKjbUiep.js";const s=(i,n)=>{new r({appKey:n,version:"10.0.0",component:i,imVersion:t.version,platform:"H5"}).track("init","")};export{s as t};

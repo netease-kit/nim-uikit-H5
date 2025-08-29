@@ -1,0 +1,89 @@
+.valid-list-container {
+  height: 100vh;
+  box-sizing: border-box;
+  background-color: #fff;
+  overflow-y: auto;
+
+  .valid-list-content {
+    height: calc(100% - 60px - var(--status-bar-height, 0));
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .valid-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    padding: 0 20px;
+  }
+
+  .valid-name-container {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    flex: 1;
+    padding-right: 20px;
+  }
+
+  .valid-name {
+    font-size: 16px;
+    color: #000;
+    max-width: 35vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .valid-action {
+    color: #888;
+    font-size: 14px;
+    max-width: 40vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .valid-item-left {
+    display: flex;
+    align-items: center;
+  }
+
+  .valid-buttons {
+    display: flex;
+    align-items: center;
+  }
+
+  .valid-button {
+    margin: 0;
+    width: 60px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 3px;
+    background-color: #fff;
+  }
+
+  .button-reject {
+    color: #000;
+    border: 1px solid #d9d9d9;
+    margin-right: 10px;
+  }
+
+  .button-accept {
+    color: #337eef;
+    border: 1px solid #337eef;
+  }
+
+  .valid-state {
+    display: flex;
+    align-items: center;
+  }
+
+  .valid-state-text {
+    margin-left: 10px;
+    color: #000;
+  }
+}

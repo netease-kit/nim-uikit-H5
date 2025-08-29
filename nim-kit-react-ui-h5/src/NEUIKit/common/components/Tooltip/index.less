@@ -1,0 +1,88 @@
+.nim-tooltip {
+  position: relative;
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version */
+  -webkit-tap-highlight-color: transparent; /* 移除触摸高亮效果 */
+}
+
+.nim-tooltip-content {
+  height: 100%;
+  position: relative;
+  display: inline-block;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nim-tooltip-popper {
+  visibility: hidden;
+  position: absolute;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 10px;
+  min-width: 10px;
+  max-width: calc(100vw - 20px); /* 限制最大宽度，两边留10px边距 */
+  overflow-wrap: break-word; /* 允许长单词换行 */
+  white-space: normal; /* 允许文本换行 */
+  display: inline-block;
+  white-space: nowrap;
+  z-index: 99;
+  background-color: #fff;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
+}
+
+.nim-tooltip-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: rgba(256, 256, 256, 0);
+  z-index: 8;
+}
+
+.nim-tooltip-arrow {
+  width: 0;
+  height: 0;
+  z-index: 9;
+  position: absolute;
+}
+
+.nim-tooltip-arrow-top {
+  bottom: -5px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--theme-bg-color, #303133);
+}
+
+.nim-tooltip-arrow-right {
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid var(--theme-bg-color, #303133);
+  left: -5px;
+}
+
+.nim-tooltip-arrow-left {
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 6px solid var(--theme-bg-color, #303133);
+  right: -5px;
+}
+
+.nim-tooltip-arrow-bottom {
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid var(--theme-bg-color, #303133);
+  top: -5px;
+}

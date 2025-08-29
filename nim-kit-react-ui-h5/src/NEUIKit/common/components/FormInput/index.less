@@ -1,0 +1,81 @@
+.nim-form-input-wrapper {
+  position: relative;
+}
+
+/* 表单输入项基础样式 */
+.nim-form-input-item {
+  border-bottom: 1px solid #dcdfe5;
+  padding: 10px 10px 5px 0;
+  display: flex;
+  height: 44px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* 表单输入项聚焦状态 */
+.nim-form-input-item.focus {
+  border-color: #337eff;
+}
+
+/* 表单输入项错误状态 */
+.nim-form-input-item.error {
+  border-color: #f56c6c;
+}
+
+/* 输入框 */
+.nim-input {
+  flex: 1;
+  height: 30px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background-color: transparent;
+  padding: 0;
+  color: #333;
+}
+
+/* 输入框占位符样式 */
+.nim-input::placeholder {
+  color: #999;
+}
+
+/* 前置内容 */
+.nim-addon-before {
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+/* 后置内容 */
+.nim-addon-after {
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+/* 清除图标 */
+.nim-clear-icon {
+  width: 40px;
+  text-align: right;
+  cursor: pointer;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.nim-clear-svg {
+  fill: #999;
+  transition: fill 0.3s;
+}
+
+.nim-clear-svg:hover {
+  fill: #666;
+}
+
+/* 错误提示 */
+.nim-error-tips {
+  color: #f56c6c;
+  font-size: 12px;
+  margin-top: 5px;
+  line-height: 1.5;
+}

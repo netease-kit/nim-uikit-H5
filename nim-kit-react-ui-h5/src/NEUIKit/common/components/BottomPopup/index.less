@@ -1,0 +1,72 @@
+.nim-bottom-popup {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 9999;
+  transition: opacity 0.3s;
+}
+
+.nim-popup-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  transition: opacity 0.3s;
+}
+
+.nim-popup-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #fff;
+  border-radius: 12px 12px 0 0;
+  transition: transform 0.3s;
+}
+
+.nim-popup-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.nim-cancel-btn {
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.nim-confirm-btn {
+  color: #337eff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.nim-popup-body {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* 显示动画 */
+.nim-bottom-popup-show {
+  opacity: 1;
+}
+
+.nim-bottom-popup-show .nim-popup-content {
+  transform: translateY(0);
+}
+
+/* 隐藏动画 */
+.nim-bottom-popup-hide {
+  opacity: 0;
+}
+
+.nim-bottom-popup-hide .nim-popup-content {
+  transform: translateY(100%);
+}

@@ -1,0 +1,47 @@
+.nim-badge-dot {
+  background-color: #ff4d4f;
+  color: #fff;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  box-sizing: border-box;
+  z-index: 99;
+}
+
+.nim-badge {
+  background-color: #ff4d4f;
+  color: #fff;
+  font-size: 12px;
+  min-width: 20px;
+  height: 20px;
+  line-height: 19px;
+  border-radius: 10px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  text-align: center;
+  z-index: 99;
+  position: relative;
+}
+
+.nim-badge-hidden {
+  display: none;
+}
+
+.nim-badge-container {
+  display: inline-block;
+}
+
+/* 徽标包装器 */
+.nim-badge-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* 徽标在包装器内的样式 */
+.nim-badge-wrapper-dot,
+.nim-badge-wrapper-content {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+}

@@ -1,0 +1,63 @@
+.team-member-container {
+  height: 100%;
+  background-color: #fff;
+  box-sizing: border-box;
+  overflow: auto;
+
+  .add-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-top: 1px solid #f5f8fc;
+    cursor: pointer;
+  }
+
+  .add-item-label {
+    color: #000;
+    font-size: 16px;
+  }
+
+  .team-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 20px;
+    padding: 8px 0;
+  }
+
+  .user-tag {
+    padding: 2px 4px;
+    background: #f7f7f7;
+    border: 1px solid #d6d8db;
+    border-radius: 5px;
+    color: #656a72;
+    font-size: 12px;
+    margin-left: 8px;
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+
+  .team-member {
+    display: flex;
+    align-items: center;
+    width: 70%;
+  }
+
+  .user-name {
+    margin-left: 12px;
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .btn-remove {
+    padding: 2px 8px;
+    color: #e6605c;
+    border-radius: 4px;
+    border: 1px solid #e6605c;
+    cursor: pointer;
+    font-size: 14px;
+  }
+}

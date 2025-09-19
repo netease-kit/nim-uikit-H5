@@ -100,7 +100,7 @@ const { proxy } = getCurrentInstance()!;
 const store = proxy?.$UIKitStore as RootStore;
 const nim = proxy?.$NIM;
 
-trackInit("ContactUIKit", nim.options.appkey);
+trackInit("ContactUIKit", nim?.options?.appkey);
 
 onMounted(() => {
   unreadWatch = autorun(() => {

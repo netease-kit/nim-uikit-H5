@@ -1,7 +1,3 @@
-// #ifdef APP-PLUS
-import pinyin from "pinyin";
-// #endif
-
 export const friendGroupByPy = <
   T extends {
     [key: string]: any;

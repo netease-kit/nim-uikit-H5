@@ -167,8 +167,8 @@ const onInputFocus = () => {
   inputFocus.value = true;
 };
 
-const onInput = (value) => {
-  searchText.value = value;
+const onInput = (event) => {
+  searchText.value = event.target.value;
 };
 
 const clearInput = () => {

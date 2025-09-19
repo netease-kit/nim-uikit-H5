@@ -26,7 +26,7 @@ export default {
   },
   mounted() {
     this.initIMUIKit({
-      appkey: "3e215d27b6a6a9e27dad7ef36dd5b65c", // 请填写你的appkey
+      appkey: "", // 请填写你的appkey
       account: "", // 请填写你的account
       token: "", // 请填写你的token
     });

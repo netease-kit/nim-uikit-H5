@@ -1,6 +1,11 @@
 <template>
-  <div class="input-wrapper" :class="{ 'is-disabled': disabled }">
+  <div
+    class="input-wrapper"
+    :style="inputWrapperStyle"
+    :class="{ 'is-disabled': disabled }"
+  >
     <input
+      ref="inputRef"
       :id="id"
       :type="type"
       :value="modelValue"
@@ -9,6 +14,7 @@
       :maxlength="maxlength"
       :style="inputStyle"
       class="input"
+      autocomplete="off"
       @input="handleInput"
       @focus="handleFocus"
       @blur="handleBlur"
@@ -21,6 +27,7 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, watch, nextTick } from "vue";
 const props = defineProps({
   modelValue: {
     type: [String, Number],
@@ -38,7 +45,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-
   maxlength: {
     type: Number,
     default: undefined,
@@ -51,9 +57,17 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  inputWrapperStyle: {
+    type: Object,
+    default: () => ({}),
+  },
   id: {
     type: String,
     default: "",
+  },
+  focus: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -66,11 +80,24 @@ const emit = defineEmits([
   "input",
 ]);
 
+const inputRef = ref<HTMLInputElement>();
+
+// 监听 focus prop 的变化
+watch(
+  () => props.focus,
+  async (newFocus) => {
+    if (newFocus && inputRef.value) {
+      await nextTick();
+      inputRef.value.focus();
+    }
+  },
+  { immediate: true }
+);
+
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
-
   emit("update:modelValue", target.value);
-  emit("input", target.value);
+  emit("input", event);
 };
 
 const handleFocus = (event: FocusEvent) => {
@@ -87,12 +114,21 @@ const clearInput = () => {
 };
 
 const handleKeypress = (event: KeyboardEvent) => {
-  // 检测是否按下回车键（包括移动设备的发送键）
   if (event.key === "Enter" || event.keyCode === 13) {
-    event.preventDefault(); // 阻止默认的换行行为
-    emit("confirm", props.modelValue); // 触发发送事件
+    event.preventDefault();
+    emit("confirm", props.modelValue);
   }
 };
+
+defineExpose({
+  focus: () => {
+    inputRef.value?.focus();
+  },
+  blur: () => {
+    inputRef.value?.blur();
+  },
+  inputRef,
+});
 </script>
 
 <style scoped>

@@ -76,8 +76,8 @@ const forwardComment = ref("");
 
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 
-const handleForwardInputChange = (value) => {
-  forwardComment.value = value;
+const handleForwardInputChange = (event) => {
+  forwardComment.value = event.target.value;
 };
 
 const handleCancel = () => {

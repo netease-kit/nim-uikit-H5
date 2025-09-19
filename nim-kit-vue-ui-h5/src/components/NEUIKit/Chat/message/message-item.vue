@@ -12,7 +12,6 @@
         : ''
     }`"
     :id="MSG_ID_FLAG + props.msg.messageClientId"
-    :key="props.msg.createTime"
   >
     <!-- 消息时间间隔提示 -->
     <div
@@ -374,13 +373,11 @@ import MessageText from "./message-text.vue";
 import MessageAudio from "./message-audio.vue";
 import MessageNotification from "./message-notification.vue";
 import MessageG2 from "./message-g2.vue";
+import PreviewImage from "../../CommonComponents/PreviewImage.vue";
 import type { V2NIMMessageForUI } from "@xkit-yx/im-store-v2/dist/types/types";
 import { V2NIMConst } from "nim-web-sdk-ng/dist/esm/nim";
 import MessageIsRead from "./message-read.vue";
 import emitter from "../../utils/eventBus";
-import PreviewImage from "../../CommonComponents/PreviewImage.vue";
-
-
 
 const isPreviewVisible = ref(false);
 const props = withDefaults(
@@ -395,14 +392,17 @@ const props = withDefaults(
   {}
 );
 
-const replyMsg = computed(() => {
-  return props.replyMsgsMap && props.replyMsgsMap[props.msg.messageClientId];
-});
+
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 
 // 昵称
 const appellation = ref("");
-const accountId = proxy?.$UIKitStore.userStore?.myUserInfo.accountId;
+
+// 被回复的消息
+const replyMsg = computed(() => {
+  return props.replyMsgsMap && props.replyMsgsMap[props.msg.messageClientId];
+});
+
 
 // 会话类型
 const conversationType =
@@ -450,7 +450,6 @@ const handleVideoTouch = (msg: V2NIMMessageForUI) => {
 
 // 重新编辑消息
 const handleReeditMsg = (msg: V2NIMMessageForUI) => {
-  
   emitter.emit(events.ON_REEDIT_MSG, msg);
 };
 
@@ -467,6 +466,7 @@ const uninstallAppellationWatch = autorun(() => {
   }) as string;
 });
 
+// 群聊ID
 const teamId = computed(() => {
   if (
     conversationType ===
@@ -624,4 +624,3 @@ onUnmounted(() => {
   max-width: 360px;
 }
 </style>
-../../utils/router

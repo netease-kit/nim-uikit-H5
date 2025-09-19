@@ -8,7 +8,7 @@ export const init = () => {
     localStorage.getItem("enableV2CloudConversation") === "on";
   const nim = V2NIM.getInstance(
     {
-      appkey: "3e215d27b6a6a9e27dad7ef36dd5b65c",
+      appkey: "",
       needReconnect: true,
       debugLevel: "debug",
       apiVersion: "v2",

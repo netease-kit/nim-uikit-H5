@@ -1,4 +1,5 @@
 <template>
+  <!-- 收到的消息 -->
   <Tooltip
     v-if="!props.msg.isSelf"
     :placement="placement"
@@ -86,6 +87,7 @@
     </div>
     <slot v-else></slot>
   </Tooltip>
+  <!-- 消息发送中 -->
   <div
     v-else-if="
       props.msg.sendingState ===
@@ -140,6 +142,7 @@
       <slot v-else></slot>
     </Tooltip>
   </div>
+  <!-- 消息发送失败 -->
   <div
     v-else-if="
       props.msg.sendingState ===
@@ -220,6 +223,7 @@
       }}</span>
     </div>
   </div>
+  <!-- 发出的消息 -->
   <Tooltip
     v-else-if="tooltipVisible"
     :placement="placement"
@@ -317,12 +321,7 @@
     </div>
     <slot v-else></slot>
   </Tooltip>
-  <div v-else-if="bgVisible" class="msg-bg msg-bg-out">
-    <slot></slot>
-  </div>
-  <div v-else>
-    <slot></slot>
-  </div>
+
   <MessageForward
     v-model="showForward"
     :msgIdClient="msg.messageClientId"
@@ -364,11 +363,6 @@ const { proxy } = getCurrentInstance()!; // 获取组件实例
 
 const store = proxy?.$UIKitStore;
 
-const conversationType =
-  proxy?.$NIM.V2NIMConversationIdUtil.parseConversationType(
-    props.msg.conversationId
-  ) as unknown as V2NIMConst.V2NIMConversationType;
-
 onMounted(() => {
   // 当前版本仅支持文本、图片、文件、语音、视频 话单消息，其他消息类型统一为未知消息
   isUnknownMsg.value = !(
@@ -385,7 +379,7 @@ onMounted(() => {
     props.msg.messageType == V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL
   );
 });
-
+// 是否是好友
 const isFriend = ref(true);
 
 // 未知消息
@@ -399,7 +393,6 @@ const closeTooltip = () => {
 // 复制消息
 const handleCopy = async () => {
   closeTooltip();
-  // 给个延迟，不然页面会删一下
   let timer = setTimeout(() => {
     try {
       copyText(props.msg.text as string);
@@ -420,6 +413,7 @@ const handleCopy = async () => {
   }, 200);
 };
 
+// 滚动到底部
 const scrollBottom = () => {
   emitter.emit(events.ON_SCROLL_BOTTOM);
 };
@@ -469,6 +463,7 @@ const handleResendMsg = async () => {
   }
 };
 
+// 转发消息
 const showForward = ref(false);
 
 const handleForwardMsg = () => {
@@ -482,6 +477,21 @@ const handleReplyMsg = async () => {
   proxy?.$UIKitStore.msgStore.replyMsgActive(_msg);
   closeTooltip();
   emitter.emit(events.REPLY_MSG, props.msg);
+  // 在群里回复其他人的消息，也是@被回复人
+  if (
+    props.msg.conversationType ===
+      V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM &&
+    !props.msg.isSelf
+  ) {
+    emitter.emit(events.AIT_TEAM_MEMBER, {
+      accountId: props.msg.senderId,
+      appellation: store?.uiStore.getAppellation({
+        account: props.msg.senderId,
+        teamId: props.msg.receiverId,
+        ignoreAlias: true,
+      }),
+    });
+  }
 };
 
 // 撤回消息
@@ -648,9 +658,9 @@ onUnmounted(() => {
 .msg-status-wrapper {
   display: flex;
   flex-direction: row;
-  align-items: center;
   margin-right: 8px;
   box-sizing: border-box;
+  position: relative;
 }
 
 .msg-status-wrapper .msg-bg-out {
@@ -663,9 +673,18 @@ onUnmounted(() => {
   font-size: 21px;
 }
 
+@keyframes loadingCircle {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .msg-status-icon.icon-loading {
   color: #337eff;
   animation: loadingCircle 1s infinite linear;
+  position: absolute;
+  bottom: 0px;
+  left: -30px;
 }
 
 .icon-fail {
@@ -686,4 +705,3 @@ onUnmounted(() => {
   align-items: center;
 }
 </style>
-../../utils/router

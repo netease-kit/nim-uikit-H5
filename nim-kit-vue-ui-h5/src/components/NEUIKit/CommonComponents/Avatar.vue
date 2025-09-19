@@ -67,7 +67,7 @@ const appellation = computed(() => {
       ignoreAlias: false,
       nickFromMsg: "",
     })
-    ?.slice(0, 2);
+    ?.slice(-2);
 });
 const uninstallUserInfoWatch = autorun(async () => {
   proxy?.$UIKitStore?.userStore?.getUserActive(props.account).then((data) => {

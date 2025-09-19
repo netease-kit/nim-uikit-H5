@@ -1,6 +1,6 @@
 {
   "name": "im-kit-vue-ui-h5",
-  "version": "10.0.0",
+  "version": "10.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,13 +11,12 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "@xkit-yx/im-store-v2": "^0.8.5",
+    "@xkit-yx/im-store-v2": "^0.8.7",
     "@xkit-yx/utils": "^0.7.2",
     "dayjs": "^1.11.7",
     "mitt": "^3.0.1",
     "mobx": "^6.6.1",
-    "nim-web-sdk-ng": "^10.8.30",
-    "pinyin": "^3.0.0",
+    "nim-web-sdk-ng": "^10.9.30",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

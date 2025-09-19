@@ -211,7 +211,7 @@ export default {
   selectSessionFailText: "选择会话失败",
   noExistUser: "该用户不存在",
   enterAccount: "请输入账号",
-  validMsgText: "验证消息",
+  validMsgText: "消息中心",
   blacklistText: "黑名单",
   applyTeamText: "申请入群",
   acceptResultText: "已同意",

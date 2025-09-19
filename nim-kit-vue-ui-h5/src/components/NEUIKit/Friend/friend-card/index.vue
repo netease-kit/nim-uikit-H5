@@ -106,13 +106,11 @@ import { showToast } from "../../utils/toast";
 import { useRouter } from "vue-router";
 import { neUiKitRouterPath } from "../../utils/uikitRouter";
 import Icon from "../../CommonComponents/Icon.vue";
-
 const router = useRouter();
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 const store = proxy?.$UIKitStore;
 const nim = proxy?.$NIM;
 const alias = ref<string>();
-const accountId = ref<string>();
 
 const userInfo = ref<V2NIMUser>();
 const relation = ref<Relation>("stranger");
@@ -130,35 +128,10 @@ const handleAliasClick = (e) => {
   });
 };
 
-onMounted(() => {
-  account = (router.currentRoute.value.query.accountId as string) || "";
-
-  store?.userStore.getUserForceActive(account).then((res) => {
-    userInfo.value = res;
-    console.log("userInfo==================", res);
-  });
-  uninstallFriendWatch = autorun(() => {
-    userInfo.value = store?.uiStore.getFriendWithUserNameCard(account);
-  });
-
-  uninstallRelationWatch = autorun(() => {
-    const { relation: _relation, isInBlacklist: _isInBlacklist } =
-      store?.uiStore.getRelation(account) as {
-        relation: Relation;
-        isInBlacklist: boolean;
-      };
-    relation.value = _relation;
-    isInBlacklist.value = _isInBlacklist;
-  });
-
-  const friend = store?.friendStore.friends.get(account);
-
-  alias.value = friend ? friend.alias : "";
-});
-
 let uninstallFriendWatch = () => {};
 let uninstallRelationWatch = () => {};
 
+// 黑名单
 const handleSwitchChange = async (value) => {
   const isAdd = value;
   isInBlacklist.value = value;
@@ -173,6 +146,7 @@ const handleSwitchChange = async (value) => {
   }
 };
 
+// 删除好友
 const deleteFriend = () => {
   modal.confirm({
     title: t("deleteFriendText"),
@@ -190,6 +164,7 @@ const deleteFriend = () => {
   });
 };
 
+// 申请加好友
 const addFriend = async () => {
   try {
     await store?.friendStore.addFriendActive(account, {
@@ -212,6 +187,7 @@ const addFriend = async () => {
   }
 };
 
+// 聊天
 const gotoChat = async () => {
   const conversationId = nim.V2NIMConversationIdUtil.p2pConversationId(
     userInfo.value?.accountId || ""
@@ -219,6 +195,31 @@ const gotoChat = async () => {
   await store?.uiStore.selectConversation(conversationId);
   router.push(neUiKitRouterPath.chat);
 };
+
+onMounted(() => {
+  account = (router.currentRoute.value.query.accountId as string) || "";
+
+  store?.userStore.getUserForceActive(account).then((res) => {
+    userInfo.value = res;
+  });
+  uninstallFriendWatch = autorun(() => {
+    userInfo.value = store?.uiStore.getFriendWithUserNameCard(account);
+  });
+
+  uninstallRelationWatch = autorun(() => {
+    const { relation: _relation, isInBlacklist: _isInBlacklist } =
+      store?.uiStore.getRelation(account) as {
+        relation: Relation;
+        isInBlacklist: boolean;
+      };
+    relation.value = _relation;
+    isInBlacklist.value = _isInBlacklist;
+  });
+
+  const friend = store?.friendStore.friends.get(account);
+
+  alias.value = friend ? friend.alias : "";
+});
 
 onUnmounted(() => {
   uninstallFriendWatch();

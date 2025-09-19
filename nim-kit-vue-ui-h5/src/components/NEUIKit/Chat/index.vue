@@ -62,12 +62,12 @@ export interface YxReplyMsg {
 }
 
 const title = ref("");
-
 const router = useRouter();
 
 const { proxy } = getCurrentInstance()!;
 const store = proxy?.$UIKitStore;
 const nim = proxy?.$NIM;
+
 /**会话ID */
 const conversationId = store?.uiStore.selectedConversation as string;
 /**会话类型 */
@@ -79,7 +79,7 @@ const conversationType =
 const to =
   proxy?.$NIM.V2NIMConversationIdUtil.parseConversationTargetId(conversationId);
 
-trackInit("ChatUIKit", nim.options.appkey);
+trackInit("ChatUIKit", nim?.options?.appkey);
 
 /**回到会话列表 */
 const backToConversation = () => {

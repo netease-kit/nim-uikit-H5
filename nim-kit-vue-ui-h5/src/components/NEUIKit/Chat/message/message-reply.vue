@@ -124,6 +124,7 @@ import PreviewImage from "../../CommonComponents/PreviewImage.vue";
 const props = withDefaults(defineProps<{ replyMsg: V2NIMMessageForUI }>(), {});
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 
+// 是否需要全屏展示
 const isFullScreen = ref(false);
 const repliedTo = ref("");
 
@@ -140,6 +141,7 @@ const isReplyMsgExist = computed(() => {
   return props.replyMsg?.messageClientId !== "noFind";
 });
 
+// 被回复的图片消息url
 const imageUrl = computed(() => {
   // 被拉黑
   if (props.replyMsg.errorCode == 102426) {
@@ -149,13 +151,6 @@ const imageUrl = computed(() => {
   return props.replyMsg?.attachment?.url || props.replyMsg.attachment?.file;
 });
 
-onMounted(() => {
-  repliedTo.value = proxy?.$UIKitStore.uiStore.getAppellation({
-    account: props.replyMsg?.senderId as string,
-    teamId: props.replyMsg?.receiverId,
-  }) as string;
-});
-
 const repliedToWatch = autorun(() => {
   repliedTo.value = proxy?.$UIKitStore.uiStore.getAppellation({
     account: props.replyMsg?.senderId as string,
@@ -163,6 +158,7 @@ const repliedToWatch = autorun(() => {
   }) as string;
 });
 
+// 全屏展示被回复的消息
 const showFullReplyMsg = () => {
   if (
     props.replyMsg?.messageType ===
@@ -197,6 +193,13 @@ const closeFullReplyMsg = (e) => {
   e.stopPropagation();
   isFullScreen.value = false;
 };
+
+onMounted(() => {
+  repliedTo.value = proxy?.$UIKitStore.uiStore.getAppellation({
+    account: props.replyMsg?.senderId as string,
+    teamId: props.replyMsg?.receiverId,
+  }) as string;
+});
 
 onUnmounted(() => {
   repliedToWatch();

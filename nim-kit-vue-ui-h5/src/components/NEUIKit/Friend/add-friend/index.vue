@@ -153,7 +153,8 @@ const gotoChat = async () => {
   }
 };
 
-const onInputValueChange = (value) => {
+const onInputValueChange = (event) => {
+  const value = event.target.value;
   //删除搜索内容,页面回到最原始状态，搜索结果都清空
   if (value === "") {
     searchResState.value = "beginSearch";

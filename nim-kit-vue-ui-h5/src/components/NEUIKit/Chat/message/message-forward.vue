@@ -118,17 +118,21 @@ const visible = computed({
   set: (val) => emit("update:modelValue", val),
 });
 
+// 转发的会话类型
 const forwardConversationType = ref<V2NIMConst.V2NIMConversationType>(
   V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_P2P
 );
+// 当前会话ID
 const conversationId = store?.uiStore.selectedConversation;
 
 let msgIdClient = "";
 const forwardTo = ref("");
 const forwardMsg = ref();
+// 转发的目标群
 const forwardToTeamInfo = ref<V2NIMTeam>();
-
+// 转发弹窗
 const forwardModalVisible = ref(false);
+
 /**转发消息确认 */
 const handleForwardConfirm = (forwardComment: string) => {
   forwardModalVisible.value = false;
@@ -196,11 +200,6 @@ const teamListWatch = autorun(() => {
   }
 });
 
-onUnmounted(() => {
-  friendListWatch();
-  teamListWatch();
-});
-
 const switchTab = (tab: "friend" | "team") => {
   currentTab.value = tab;
   selectedId.value = "";
@@ -239,6 +238,11 @@ const handleCancel = () => {
 
 onMounted(() => {
   msgIdClient = props?.msgIdClient;
+});
+
+onUnmounted(() => {
+  friendListWatch();
+  teamListWatch();
 });
 </script>
 

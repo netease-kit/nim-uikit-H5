@@ -60,7 +60,8 @@ const inputClass = computed(() => {
   ];
 });
 
-const handleInput = (inputValue) => {
+const handleInput = (event) => {
+  let inputValue = event.target.value;
   if (props.type === "tel") {
     inputValue = inputValue.replace(/\D/g, "");
   }

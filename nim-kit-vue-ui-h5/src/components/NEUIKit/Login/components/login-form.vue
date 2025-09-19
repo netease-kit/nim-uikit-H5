@@ -162,10 +162,34 @@ async function submitLoginForm() {
       app.appContext.app.config.globalProperties.$UIKitStore = store;
     }
 
-    nim.V2NIMLoginService.login(res.imAccid, res.imToken).then(() => {
-      // IM 登录成功后跳转到会话页面
-      router.push(neUiKitRouterPath.conversation);
-    });
+    const handelKickedOffline = () => {
+      showToast({
+        message: "您已被踢下线",
+        type: "info",
+      });
+      router.push("/login");
+      localStorage.removeItem("__yx_im_options__h5");
+      store.destroy();
+      nim.V2NIMLoginService.off("onKickedOffline", handelKickedOffline);
+    };
+
+    nim.V2NIMLoginService.login(res.imAccid, res.imToken)
+      .then(() => {
+        // IM 登录成功后跳转到会话页面
+        router.push(neUiKitRouterPath.conversation);
+        nim.V2NIMLoginService.on("onKickedOffline", handelKickedOffline);
+      })
+      .catch((error) => {
+        if (error.code === 102422) {
+          // 账号被封禁
+          showToast({
+            message: "当前账号已被封禁",
+            type: "info",
+          });
+          // 登录信息无效，清除并跳转到登录页
+          localStorage.removeItem("__yx_im_options__h5");
+        }
+      });
   } catch (error: any) {
     let msg = error.errMsg || error.msg || error.message || i18n.smsCodeFailMsg;
     if (msg.startsWith("request:fail")) {

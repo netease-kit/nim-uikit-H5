@@ -2,7 +2,6 @@
   <div
     class="avatar"
     :style="{ width: avatarSize + 'px', height: avatarSize + 'px' }"
-    @click="handleAvatarClick"
     @longpress="longpress"
     @touchend="touchend"
   >
@@ -63,7 +62,7 @@ const $emit = defineEmits(["onLongpress"]);
 
 const avatarSize = props.size || 42;
 const user = ref<V2NIMUser>();
-let isLongPress = false; // uniapp 长按事件也会触发点击事件，此时需要处理
+let isLongPress = false;
 
 const appellation = computed(() => {
   return store?.uiStore
@@ -103,32 +102,6 @@ if (!color) {
   localStorage.setItem(key, _color);
   color = _color;
 }
-
-const handleAvatarClick = () => {
-  if (props.gotoUserCard && !isLongPress) {
-    if (props.isRedirect) {
-      if (props.account === store?.userStore?.myUserInfo.accountId) {
-        // customRedirectTo({
-        //   url: `/pages/user-card/my-detail/index`,
-        // });
-      } else {
-        // customRedirectTo({
-        //   url: `/pages/user-card/friend/index?account=${props.account}`,
-        // });
-      }
-    } else {
-      if (props.account === store?.userStore?.myUserInfo.accountId) {
-        // customNavigateTo({
-        //   url: `/pages/user-card/my-detail/index`,
-        // });
-      } else {
-        // customNavigateTo({
-        //   url: `/pages/user-card/friend/index?account=${props.account}`,
-        // });
-      }
-    }
-  }
-};
 
 const longpress = () => {
   isLongPress = true;

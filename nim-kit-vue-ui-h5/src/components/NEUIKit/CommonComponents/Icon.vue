@@ -344,11 +344,6 @@ const _url = computed(() => {
   return urlMap[props.type];
 });
 
-// const prefix = 'https://yiyong-qa.netease.im/yiyong-static/statics/uniapp-vue2-h5'
-// const url = computed(() => {
-//   return `${prefix}/static/icons/${props.type}.png`
-// })
-
 const className = `${props.iconClassName || ""} icon-wrapper`;
 </script>
 

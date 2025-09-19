@@ -55,9 +55,8 @@
           <div class="search-input">{{ t("searchText") }}</div>
         </div>
       </div>
-      <!-- 页面初始化的过程中，sessionList编译到小程序和h5出现sessionList为undefined的情况，即使给了默认值为空数组，故在此处进行判断 -->
       <Empty
-        v-if="!conversationList || conversationList.length === 0"
+        v-if="conversationList.length === 0"
         :text="t('conversationEmptyText')"
       />
     </div>
@@ -107,7 +106,6 @@
 
 <script lang="ts" setup>
 /** 会话列表主界面 */
-
 import { onUnmounted, ref, getCurrentInstance } from "vue";
 import { autorun } from "mobx";
 import Icon from "../CommonComponents/Icon.vue";
@@ -124,6 +122,7 @@ import { useRouter } from "vue-router";
 import { neUiKitRouterPath } from "../utils/uikitRouter";
 import { onMounted } from "vue";
 import { trackInit } from "../utils/reporter";
+import { V2NIMConst } from "nim-web-sdk-ng/dist/esm/nim";
 
 const conversationList = ref<
   (V2NIMConversationForUI | V2NIMLocalConversationForUI)[]
@@ -140,7 +139,7 @@ const { proxy } = getCurrentInstance()!; // 获取组件实例
 const store = proxy?.$UIKitStore;
 const nim = proxy?.$NIM;
 
-trackInit("ContactUIKit", nim.options.appkey);
+trackInit("ContactUIKit", nim?.options?.appkey);
 
 /**是否是云端会话 */
 const enableV2CloudConversation = store?.sdkOptions?.enableV2CloudConversation;
@@ -212,6 +211,24 @@ const handleSessionItemClick = async (
   currentMoveSessionId.value = "";
   try {
     flag = true;
+    // 处理@消息相关
+    if (
+      conversation.type ===
+        V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM ||
+      conversation.type ===
+        V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_SUPER_TEAM
+    ) {
+      if (store?.sdkOptions?.enableV2CloudConversation) {
+        await store?.conversationStore?.markConversationReadActive(
+          conversation.conversationId
+        );
+      } else {
+        await store?.localConversationStore?.markConversationReadActive(
+          conversation.conversationId
+        );
+      }
+    }
+
     await store?.uiStore.selectConversation(conversation.conversationId);
     router.push(neUiKitRouterPath.chat);
   } catch {

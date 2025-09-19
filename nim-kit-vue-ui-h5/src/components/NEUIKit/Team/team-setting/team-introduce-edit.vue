@@ -104,7 +104,8 @@ const handleSave = () => {
     });
 };
 
-const handleInput = (value: string) => {
+const handleInput = (event) => {
+  const value = event.target.value;
   inputValue.value = value ? value.replace(/\s*/g, "") : value;
 };
 

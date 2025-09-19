@@ -11,6 +11,7 @@ export interface Match {
 var isRegExp = function (re: any) {
   return re instanceof RegExp;
 };
+
 var escapeRegExp = function escapeRegExp(string: string) {
   var reRegExpChar = /[\\^$.*+?()[\]{}|]/g,
     reHasRegExpChar = RegExp(reRegExpChar.source);

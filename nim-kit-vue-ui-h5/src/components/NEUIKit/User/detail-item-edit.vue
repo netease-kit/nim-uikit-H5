@@ -9,9 +9,9 @@
     </NavBar>
     <div class="userInfo-item-wrapper">
       <Input
-        @focus="onInputFocus"
         :maxlength="maxlengthMap[key]"
         @input="onInputChange"
+        @focus="onInputFocus"
         :modelValue="inputValue"
       />
       <div @click="clearInputValue">
@@ -71,7 +71,8 @@ onMounted(() => {
   });
 });
 
-const onInputChange = (value) => {
+const onInputChange = (event) => {
+  const value = event.target.value;
   inputValue.value = value;
 };
 

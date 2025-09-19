@@ -38,9 +38,9 @@ import {
 import MessageItem from "./message-item.vue";
 import { caculateTimeago } from "../../utils/date";
 import { t } from "../../utils/i18n";
-import type { V2NIMMessageForUI } from "@xkit-yx/im-store-v2/dist/types/types";
 import { V2NIMConst } from "nim-web-sdk-ng/dist/esm/nim";
 import { autorun } from "mobx";
+import type { V2NIMMessageForUI } from "@xkit-yx/im-store-v2/dist/types/types";
 import type { V2NIMTeam } from "nim-web-sdk-ng/dist/esm/nim/src/V2NIMTeamService";
 import emitter from "../../utils/eventBus";
 import { events } from "../../utils/constants";
@@ -62,60 +62,9 @@ const props = withDefaults(
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 const messageListRef = ref<HTMLElement | null>(null);
 
-onBeforeMount(() => {
-  let team: V2NIMTeam | undefined = undefined;
-
-  autorun(() => {
-    team = proxy?.$UIKitStore.teamStore.teams.get(props.to);
-  });
-
-  if (
-    props.conversationType ===
-    V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM
-  ) {
-    proxy?.$UIKitStore.teamMemberStore.getTeamMemberActive({
-      teamId: props.to,
-      queryOption: {
-        limit: Math.max((team as unknown as V2NIMTeam)?.memberLimit || 0, 200),
-        roleQueryType: 0,
-      },
-    });
-  }
-
-  emitter.on(events.AUDIO_URL_CHANGE, (url) => {
-    broadcastNewAudioSrc.value = url as string;
-  });
-
-  emitter.on(events.ON_LOAD_MORE, () => {
-    const msg = finalMsgs.value.filter(
-      (item) =>
-        !(
-          item.messageType ===
-            V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CUSTOM &&
-          ["beReCallMsg", "reCallMsg"].includes(item.recallType || "")
-        )
-    )[0];
-    if (msg) {
-      emitter.emit(events.GET_HISTORY_MSG, msg);
-    }
-  });
-});
-
-onMounted(() => {
-  emitter.on(events.ON_SCROLL_BOTTOM, scrollToBottom);
-  let timer = setTimeout(() => {
-    scrollToBottom();
-    clearTimeout(timer);
-  }, 100);
-});
-
-onUnmounted(() => {
-  emitter.off(events.ON_SCROLL_BOTTOM, scrollToBottom);
-  emitter.off(events.ON_LOAD_MORE);
-  emitter.off(events.AUDIO_URL_CHANGE);
-});
-
 const scrollTop = ref(0);
+
+// 处理完的最终消息列表
 const finalMsgs = computed(() => {
   const res: V2NIMMessageForUI[] = [];
   props.msgs.forEach((item, index) => {
@@ -133,13 +82,10 @@ const finalMsgs = computed(() => {
             .V2NIM_MESSAGE_SENDING_STATE_SUCCEEDED,
         // @ts-ignore
         timeValue: caculateTimeago(item.createTime),
-        renderKey: `${item.createTime + 1}`,
       });
     }
     res.push({
       ...item,
-      // @ts-ignore
-      renderKey: `${item.createTime}`,
     });
   });
 
@@ -155,12 +101,6 @@ const scrollToBottom = () => {
       messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
     }
   });
-  // let timer = setTimeout(() => {
-  //   if (messageListRef.value) {
-  //     messageListRef.value.scrollTop = messageListRef.value.scrollHeight;
-  //   }
-  //   clearTimeout(timer);
-  // }, 0);
 };
 
 // 加载更多消息
@@ -176,6 +116,7 @@ const onLoadMore = () => {
   emitter.emit(events.GET_HISTORY_MSG, msg);
 };
 
+// 点击消息列表
 const handleTapMessageList = () => {
   // 点击消息列表时让输入框失焦
   const activeElement = document.activeElement as HTMLElement;
@@ -185,6 +126,54 @@ const handleTapMessageList = () => {
 
   emitter.emit(events.CLOSE_PANEL);
 };
+
+let teamWatch = () => {};
+
+onBeforeMount(() => {
+  let team: V2NIMTeam | undefined = undefined;
+
+  teamWatch = autorun(() => {
+    team = proxy?.$UIKitStore.teamStore.teams.get(props.to);
+  });
+
+  if (
+    props.conversationType ===
+    V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM
+  ) {
+    proxy?.$UIKitStore.teamMemberStore.getTeamMemberActive({
+      teamId: props.to,
+      queryOption: {
+        limit: Math.max((team as unknown as V2NIMTeam)?.memberLimit || 0, 200),
+        roleQueryType: 0,
+      },
+    });
+  }
+
+  // 加载更多消息
+  emitter.on(events.ON_LOAD_MORE, () => {
+    const msg = finalMsgs.value.filter(
+      (item) =>
+        !(
+          item.messageType ===
+            V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CUSTOM &&
+          ["beReCallMsg", "reCallMsg"].includes(item.recallType || "")
+        )
+    )[0];
+    if (msg) {
+      emitter.emit(events.GET_HISTORY_MSG, msg);
+    }
+  });
+});
+
+onMounted(() => {
+  emitter.on(events.ON_SCROLL_BOTTOM, scrollToBottom);
+});
+
+onUnmounted(() => {
+  emitter.off(events.ON_SCROLL_BOTTOM, scrollToBottom);
+  emitter.off(events.ON_LOAD_MORE);
+  teamWatch();
+});
 </script>
 
 <style scoped>

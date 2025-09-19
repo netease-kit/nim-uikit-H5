@@ -13,8 +13,8 @@
       <Icon :type="iconType" :size="32"></Icon>
       <div class="msg-file-content">
         <div class="msg-file-title">
-          <div class="msg-file-title-prefix">{{ prefixName }}</div>
-          <div class="msg-file-title-suffix">{{ suffixName }}</div>
+          <div class="msg-file-title-prefix">{{ name }}</div>
+          <div class="msg-file-title-suffix">{{ ext }}</div>
         </div>
         <div class="msg-file-size">{{ parseFileSize(size) }}</div>
       </div>
@@ -49,19 +49,19 @@ const {
   size = 0,
 } = (props.msg.attachment as V2NIMMessageFileAttachment) || {};
 
-//@ts-ignore
+// 获取文件类型图标
 const iconType = fileIconMap[getFileType(ext)] || "icon-weizhiwenjian";
 
-const index = name.lastIndexOf(".") > -1 ? name.lastIndexOf(".") : name.length;
-
-const prefixName = name.slice(0, Math.max(index - 5, 0));
-const suffixName = name.slice(Math.max(index - 5, 0));
-
+// 下载链接
 const downloadUrl =
   url + ((url as string).includes("?") ? "&" : "?") + `download=${name}`;
 </script>
 
 <style scoped>
+.msg-file-wrapper {
+  height: fit-content;
+  display: block;
+}
 /* 文件消息基础样式 */
 .msg-file {
   height: 56px;
@@ -103,12 +103,15 @@ const downloadUrl =
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 150px;
+  max-width: 130px;
 }
 
 /* 文件名后缀 */
 .msg-file-title-suffix {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 40px;
 }
 
 /* 文件名 */

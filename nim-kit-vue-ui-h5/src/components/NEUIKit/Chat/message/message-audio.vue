@@ -22,8 +22,6 @@
 <script lang="ts" setup>
 import { ref, onUnmounted, computed, onMounted } from "vue";
 import Icon from "../../CommonComponents/Icon.vue";
-import { events } from "../../utils/constants";
-import emitter from "../../utils/eventBus";
 import type { V2NIMMessageForUI } from "@xkit-yx/im-store-v2/dist/types/types";
 import type { V2NIMMessageAudioAttachment } from "nim-web-sdk-ng/dist/esm/nim/src/V2NIMMessageService";
 
@@ -78,8 +76,6 @@ const togglePlay = () => {
     audioRef.value.currentTime = 0;
     isAudioPlaying.value = false;
   } else {
-    // 发送事件通知其他音频停止播放
-    emitter.emit(events.AUDIO_PLAY_CHANGE, props.msg.messageClientId);
     audioRef.value.play().catch((error) => {
       console.warn("播放音频失败:", error);
     });
@@ -132,26 +128,10 @@ const playAudioAnimation = () => {
 
 // 组件卸载时停止播放
 onUnmounted(() => {
-  // 移除事件监听
-  emitter.off(events.AUDIO_PLAY_CHANGE);
   if (audioRef.value) {
     audioRef.value.pause();
     audioRef.value.currentTime = 0;
   }
-});
-
-onMounted(() => {
-  // 监听其他音频的播放事件
-  emitter.on(events.AUDIO_PLAY_CHANGE, (messageId) => {
-    if (messageId !== props.msg.messageClientId && isAudioPlaying.value) {
-      if (audioRef.value) {
-        audioRef.value.pause();
-        audioRef.value.currentTime = 0;
-        isAudioPlaying.value = false;
-        animationFlag.value = false;
-      }
-    }
-  });
 });
 </script>
 

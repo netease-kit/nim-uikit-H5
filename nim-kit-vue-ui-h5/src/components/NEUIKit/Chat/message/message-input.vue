@@ -41,7 +41,7 @@
               V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_TEXT
           "
           :text="replyMsg.text"
-        ></message-one-line>
+        />
         <div v-else>
           {{
             replyMsg?.messageType
@@ -69,6 +69,7 @@
         </div>
         <Input
           v-show="!showFakeInput"
+          ref="msgInputRef"
           id="msg-input"
           class="msg-input-input"
           :placeholder="
@@ -86,6 +87,7 @@
           @confirm="handleSendTextMsg"
           @blur="handleInputBlur"
           @focus="handleInputFocus"
+          @input="handleInputChange"
         >
         </Input>
       </div>
@@ -118,6 +120,19 @@
       </div>
     </div>
   </div>
+  <BottomPopup
+    v-model="mentionPopupVisible"
+    @cancel="mentionPopupVisible = false"
+    :showConfirm="false"
+    :showCancel="true"
+    :title="t('chooseMentionText')"
+  >
+    <MentionChooseList
+      :teamId="props.to"
+      @handleMemberClick="handleMentionSelect"
+      @item-click="handleMentionSelect"
+    ></MentionChooseList>
+  </BottomPopup>
 </template>
 
 <script lang="ts" setup>
@@ -131,7 +146,12 @@ import {
   onMounted,
   nextTick,
 } from "vue";
-import { events, REPLY_MSG_TYPE_MAP } from "../../utils/constants";
+import {
+  ALLOW_AT,
+  events,
+  REPLY_MSG_TYPE_MAP,
+  AT_ALL_ACCOUNT,
+} from "../../utils/constants";
 import { emojiMap } from "../../utils/emoji";
 import { t } from "../../utils/i18n";
 import MessageOneLine from "../../CommonComponents/MessageOneLine.vue";
@@ -145,10 +165,16 @@ import type {
   V2NIMTeamChatBannedMode,
   V2NIMTeamMember,
 } from "nim-web-sdk-ng/dist/esm/nim/src/V2NIMTeamService";
-import type { V2NIMMessageForUI } from "@xkit-yx/im-store-v2/dist/types/types";
-import { V2NIMConst } from "nim-web-sdk-ng/dist/esm/nim";
+import type {
+  V2NIMMessageForUI,
+  YxServerExt,
+  YxAitMsg,
+} from "@xkit-yx/im-store-v2/dist/types/types";
 import type { V2NIMMessage } from "nim-web-sdk-ng/dist/esm/nim/src/V2NIMMessageService";
 import { toast } from "../../utils/toast";
+import { V2NIMConst } from "nim-web-sdk-ng/dist/esm/nim";
+import BottomPopup from "../../CommonComponents/BottomPopup.vue";
+import MentionChooseList from "./mention-choose-list.vue";
 
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 const store = proxy?.$UIKitStore;
@@ -176,14 +202,6 @@ const inputText = ref("");
 const sendMoreVisible = ref(false);
 // 表情面板flag
 const emojiVisible = ref(false);
-// input框flag
-const inputVisible = computed(() => {
-  if (sendMoreVisible.value) {
-    return false;
-  } else {
-    return true;
-  }
-});
 
 // 用于解决表情面板和键盘冲突，导致输入框滚动消失问题
 const showFakeInput = ref(false);
@@ -193,6 +211,9 @@ const isReplyMsg = ref(false);
 const isFocus = ref(false);
 const replyMsg = ref<V2NIMMessageForUI>();
 
+//输入框ref
+const msgInputRef = ref();
+
 // 群相关
 const team = ref<V2NIMTeam>();
 const teamMembers = ref<V2NIMTeamMember[]>([]);
@@ -200,9 +221,18 @@ const teamMute = ref<V2NIMTeamChatBannedMode>(
   V2NIMConst.V2NIMTeamChatBannedMode.V2NIM_TEAM_CHAT_BANNED_MODE_UNBAN
 );
 
+// 是否是群主
 const isTeamOwner = ref(false);
+// 是否是群管理员
 const isTeamManager = ref(false);
+// 群禁言状态
 const isTeamMute = ref(false);
+
+// @消息相关
+const mentionPopupVisible = ref(false);
+const cursorPosition = ref(0); // 记录光标位置
+const atPosition = ref(0); // 记录@符号的位置
+const selectedAtMembers = ref<{ accountId: string; appellation: string }[]>([]); // 选中@成员
 
 // 更新群禁言
 const updateTeamMute = () => {
@@ -220,10 +250,6 @@ const updateTeamMute = () => {
   }
   isTeamMute.value = true;
   return;
-};
-
-const handleInputFocus = () => {
-  isFocus.value = true;
 };
 
 // 点击表情输入框，隐藏表情面板，显示键盘，但在safari浏览器因苹果的安全策略，无法主动唤起键盘，需要用户手动点击
@@ -248,8 +274,88 @@ const onHideFakeInput = () => {
   }, 100);
 };
 
-const handleInputBlur = () => {
-  isFocus.value = false;
+/** 是否允许@ 所有人 */
+const allowAtAll = computed(() => {
+  let ext: YxServerExt = {};
+  try {
+    ext = JSON.parse((team.value || {}).serverExtension || "{}");
+  } catch (error) {
+    //
+  }
+  if (ext[ALLOW_AT] === "manager") {
+    return isTeamOwner.value || isTeamManager.value;
+  }
+  return true;
+});
+
+/** 处理选中的@ 成员 */
+const onAtMembersExtHandler = () => {
+  let ext: YxServerExt;
+  if (selectedAtMembers.value.length) {
+    selectedAtMembers.value
+      .filter((member) => {
+        if (!allowAtAll.value && member.accountId === AT_ALL_ACCOUNT) {
+          return false;
+        }
+        return true;
+      })
+      .forEach((member) => {
+        const substr = `@${member.appellation}`;
+        const positions: number[] = [];
+        let pos = inputText.value?.indexOf(substr);
+        while (pos !== -1) {
+          positions.push(pos);
+          pos = inputText.value?.indexOf(substr, pos + 1);
+        }
+        if (positions.length) {
+          if (!ext) {
+            ext = {
+              yxAitMsg: {
+                [member.accountId]: {
+                  text: substr,
+                  segments: [],
+                },
+              },
+            };
+          } else {
+            (ext.yxAitMsg as YxAitMsg)[member.accountId] = {
+              text: substr,
+              segments: [],
+            };
+          }
+          positions.forEach((position) => {
+            const start = position;
+            (ext?.yxAitMsg as YxAitMsg)[member.accountId].segments.push({
+              start,
+              end: start + substr.length,
+              broken: false,
+            });
+          });
+        }
+      });
+  }
+  // @ts-ignore
+  return ext;
+};
+// 处理输入框内容变化 @相关时使用
+const handleInputChange = (event) => {
+  // 获取当前光标位置
+  if (msgInputRef.value && msgInputRef.value.inputRef) {
+    cursorPosition.value = msgInputRef.value.inputRef.selectionStart || 0;
+  }
+
+  // 当前输入的是@ 展示群成员列表
+  if (
+    event.data === "@" &&
+    props.conversationType ===
+      V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM
+  ) {
+    atPosition.value = cursorPosition.value - 1; // 记录@符号的位置
+    mentionPopupVisible.value = true;
+    msgInputRef.value.inputRef.blur();
+  } else {
+    mentionPopupVisible.value = false;
+  }
 };
 
 // 滚动到底部
@@ -262,11 +368,13 @@ const handleSendTextMsg = () => {
   if (inputText.value.trim() === "") return;
   let text = replaceEmoji(inputText.value);
   const textMsg = proxy?.$NIM.V2NIMMessageCreator.createTextMessage(text);
+  const ext = onAtMembersExtHandler();
 
   store?.msgStore
     .sendMessageActive({
       msg: textMsg as unknown as V2NIMMessage,
       conversationId,
+      serverExtension: selectedAtMembers.value.length && (ext as any),
       sendBefore: () => {
         scrollBottom();
       },
@@ -334,11 +442,13 @@ const handleSendMoreVisible = () => {
 // 发送图片消息
 const imageInput = ref<HTMLInputElement | null>(null);
 
+// 处理图片选择
 const handleSendImageMsg = () => {
   if (isTeamMute.value) return;
   imageInput.value?.click();
 };
 
+// 处理图片选择
 const onImageSelected = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
@@ -372,6 +482,55 @@ const onImageSelected = async (event: Event) => {
       imageInput.value.value = "";
     }
   }
+};
+
+// 输入框聚焦
+const handleInputFocus = () => {
+  isFocus.value = true;
+  // 记录当前光标位置
+  if (msgInputRef.value && msgInputRef.value.inputRef) {
+    cursorPosition.value = msgInputRef.value.inputRef.selectionStart || 0;
+  }
+};
+
+// 输入框失焦
+const handleInputBlur = () => {
+  isFocus.value = false;
+};
+
+// 处理mention选择
+const handleMentionSelect = (member) => {
+  const nickInTeam = member.appellation;
+  selectedAtMembers.value = [
+    ...selectedAtMembers.value.filter(
+      (item) => item.accountId !== member.accountId
+    ),
+    member,
+  ];
+
+  // 在@符号位置插入@xxx，而不是追加到末尾
+  const currentText = inputText.value;
+  const beforeAt = currentText.substring(0, atPosition.value);
+  const afterAt = currentText.substring(atPosition.value + 1); // +1 跳过@符号
+  const newInputText = beforeAt + "@" + nickInTeam + " " + afterAt;
+
+  // 更新input框的内容
+  inputText.value = newInputText;
+
+  handleCloseMention();
+
+  // 设置光标位置到插入内容之后
+  nextTick(() => {
+    if (msgInputRef.value && msgInputRef.value.inputRef) {
+      const newCursorPos = atPosition.value + nickInTeam.length + 2; // @xxx + 空格
+      msgInputRef.value.inputRef.setSelectionRange(newCursorPos, newCursorPos);
+    }
+  });
+};
+
+// 关闭mention
+const handleCloseMention = () => {
+  mentionPopupVisible.value = false;
 };
 
 let uninstallTeamWatch = () => {};
@@ -425,11 +584,26 @@ onMounted(() => {
     inputText.value = msg?.oldText || "";
     isFocus.value = true;
   });
-
+  // 回复消息
   emitter.on(events.REPLY_MSG, (msg) => {
     isReplyMsg.value = true;
     isFocus.value = true;
     replyMsg.value = msg as V2NIMMessageForUI;
+  });
+
+  // @提及成员
+  emitter.on(events.AIT_TEAM_MEMBER, (member) => {
+    const beReplyMember = member as { accountId: string; appellation: string };
+    selectedAtMembers.value = [
+      ...selectedAtMembers.value.filter(
+        (item) => item.accountId !== beReplyMember.accountId
+      ),
+      beReplyMember,
+    ];
+    const newInputText =
+      inputText.value + "@" + beReplyMember.appellation + " ";
+    /** 更新input框的内容 */
+    inputText.value = newInputText;
   });
 
   // 关闭表情、语音、发送更多面板

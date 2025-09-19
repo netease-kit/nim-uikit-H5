@@ -16,18 +16,22 @@ import type {
 import type { V2NIMMessageNotificationAttachment } from "nim-web-sdk-ng/dist/esm/nim/src/V2NIMMessageService";
 import { onUnmounted, ref, getCurrentInstance } from "vue";
 import { autorun } from "mobx";
+
 const props = withDefaults(defineProps<{ msg: V2NIMMessageForUI }>(), {});
 
 const { proxy } = getCurrentInstance()!; // 获取组件实例
 
+// 群ID
 const teamId =
   props.msg.conversationType ===
   V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM
     ? props.msg.receiverId
     : "";
 
+// 通知消息内容
 const notificationContent = ref("");
 
+// 监听通知消息内容变化
 const notificationContentWatch = autorun(() => {
   const getNotificationContent = () => {
     const attachment = props.msg

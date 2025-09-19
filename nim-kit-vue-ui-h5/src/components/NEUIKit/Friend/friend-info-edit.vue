@@ -46,7 +46,6 @@ const inputLengthTips = computed(() => {
 // 保存备注名称
 const handleSave = () => {
   // alias.value 为 null 和空字符串表示删除备注，在此对 alias.value 为 null 的转换成空字符串，否则 sdk 会报错
-  console.log(alias.value);
   if (alias.value === null) {
     alias.value = "";
   }
@@ -70,8 +69,8 @@ const handleSave = () => {
     });
 };
 
-const handleInput = (value: string) => {
-  alias.value = value;
+const handleInput = (event) => {
+  alias.value = event.target.value;
 };
 
 onMounted(() => {

@@ -65,7 +65,8 @@ onMounted(() => {
   });
 });
 
-const onInputChange = (value) => {
+const onInputChange = (event) => {
+  const value = event.target.value;
   inputValue.value = value;
 };
 

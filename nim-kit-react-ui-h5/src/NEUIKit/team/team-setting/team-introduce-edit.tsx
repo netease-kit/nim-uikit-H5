@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from '@/utils/router'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'
 import { useStateContext } from '@/NEUIKit/common/hooks/useStateContext'
 import { toast } from '@/NEUIKit/common/utils/toast'

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import Icon from '@/NEUIKit/common/components/Icon'
 import Tooltip from '@/NEUIKit/common/components/Tooltip'
 import MessageForward from '@/NEUIKit/chat/message/message-forward'

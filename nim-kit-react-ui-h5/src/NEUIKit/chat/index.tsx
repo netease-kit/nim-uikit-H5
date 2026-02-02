@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'
 import { useStateContext } from '@/NEUIKit/common/hooks/useStateContext'
 import { HISTORY_LIMIT, events } from '@/NEUIKit/common/utils/constants'
@@ -15,7 +15,7 @@ import NavBar from './message/nav-bar'
 import Icon from '@/NEUIKit/common/components/Icon'
 import MessageList from './message/message-list'
 import MessageInput from './message/message-input'
-// import { useEventTracking } from '../common/hooks/useEventTracking'
+import { useEventTracking } from '../common/hooks/useEventTracking'
 
 import './index.less'
 import { V2NIMMessageForUI } from '@xkit-yx/im-store-v2/dist/types/types'
@@ -66,9 +66,9 @@ const Chat = observer(() => {
   const p2pMsgReceiptVisible = store.localOptions.p2pMsgReceiptVisible
 
   // 初始化埋点
-  // useEventTracking({
-  //   component: 'ChatUIKit'
-  // })
+  useEventTracking({
+    component: 'ChatUIKit'
+  })
 
   /**
    * 返回会话列表

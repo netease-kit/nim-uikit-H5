@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import Icon from '@/NEUIKit/common/components/Icon'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'

@@ -1,7 +1,7 @@
 import RootStore from '@xkit-yx/im-store-v2'
 import { LocalOptions } from '@xkit-yx/im-store-v2/dist/types/types'
 import { observer } from 'mobx-react'
-import { NIM, V2NIMConst } from 'nim-web-sdk-ng/dist/esm/nim'
+import { NIM } from 'nim-web-sdk-ng/dist/esm/nim'
 import sdkPkg from 'nim-web-sdk-ng/package.json'
 import React, { createContext, FC, memo, ReactNode, useCallback, useEffect, useMemo } from 'react'
 
@@ -28,36 +28,9 @@ export interface ProviderProps {
 
 export const Context = createContext<ContextProps>({})
 
-const defaultLocalOptions: Required<LocalOptions> = {
-  addFriendNeedVerify: true,
-  teamAgreeMode: V2NIMConst.V2NIMTeamAgreeMode.V2NIM_TEAM_AGREE_MODE_NO_AUTH,
-  teamJoinMode: V2NIMConst.V2NIMTeamJoinMode.V2NIM_TEAM_JOIN_MODE_FREE,
-  teamInviteMode: V2NIMConst.V2NIMTeamInviteMode.V2NIM_TEAM_INVITE_MODE_MANAGER,
-  teamUpdateTeamMode: V2NIMConst.V2NIMTeamUpdateInfoMode.V2NIM_TEAM_UPDATE_INFO_MODE_MANAGER,
-  teamUpdateExtMode: V2NIMConst.V2NIMTeamUpdateExtensionMode.V2NIM_TEAM_UPDATE_EXTENSION_MODE_ALL,
-  leaveOnTransfer: false,
-  needMention: true,
-  p2pMsgReceiptVisible: false,
-  teamMsgReceiptVisible: false,
-  loginStateVisible: false,
-  allowTransferTeamOwner: false,
-  teamManagerVisible: false,
-  aiVisible: true,
-  teamManagerLimit: 10,
-  sendMsgBefore: async (options: any) => options,
-  aiUserAgentProvider: {},
-  conversationLimit: 100,
-  debug: 'debug',
-  iconfontUrl: [],
-  enableTeam: false,
-  enableChangeTeamJoinMode: false,
-  enableChangeTeamAgreeMode: false,
-  aiStream: false
-}
-
 export const Provider: FC<ProviderProps> = memo(function Main({
   children,
-  localOptions = defaultLocalOptions,
+  localOptions,
   nim,
   locale = 'zh',
   localeConfig = zh,
@@ -81,7 +54,7 @@ export const Provider: FC<ProviderProps> = memo(function Main({
   )
 
   const finalLocalOptions = useMemo(() => {
-    return { ...defaultLocalOptions, ...localOptions }
+    return { ...localOptions }
   }, [localOptions])
 
   const rootStore = useMemo(() => {
@@ -148,5 +121,5 @@ export const App: FC<Props> = observer(({ children }) => {
 
   // return <>{render()}</>
 
-  return children
+  return <>{children}</>
 })

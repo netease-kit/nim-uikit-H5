@@ -1,0 +1,74 @@
+.mention-member-list-wrapper {
+  z-index: 9999999;
+  touch-action: none;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.title {
+  text-align: center;
+  font-weight: 500;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  height: 60px;
+}
+
+.close {
+  transform: rotate(90deg);
+  margin-left: 15px;
+}
+
+.member-list-content {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.member-name {
+  margin-left: 10px;
+  font-size: 16px;
+  padding-right: 20px;
+  color: #000000;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contact-item-icon {
+  height: 42px;
+  width: 42px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 39px;
+  font-size: 20px;
+  color: #fff;
+  background-color: #53c3f4;
+}
+
+.owner,
+.manager {
+  color: rgb(6, 155, 235);
+  background-color: rgb(210, 229, 246);
+  height: 24px;
+  line-height: 24px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+  padding: 2px 4px;
+  position: relative;
+  right: 10px;
+}

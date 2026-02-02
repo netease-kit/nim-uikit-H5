@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from '@/utils/router'
 import { V2NIMConst } from 'nim-web-sdk-ng/dist/esm/nim'
 import type { V2NIMTeam, V2NIMTeamMember } from 'nim-web-sdk-ng/dist/esm/nim/src/V2NIMTeamService'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'

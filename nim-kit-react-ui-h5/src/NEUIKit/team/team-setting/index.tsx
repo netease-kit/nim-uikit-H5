@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from '@/utils/router'
 import RootStore from '@xkit-yx/im-store-v2'
 import { V2NIMConst } from 'nim-web-sdk-ng/dist/esm/nim'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'
@@ -111,6 +111,8 @@ const TeamSetting: React.FC = observer(() => {
             toast.info(t('dismissTeamFailedText'))
           })
       }
+    }).catch(() => {
+      // 用户点击取消，不需要任何操作
     })
   }, [teamId])
 
@@ -132,6 +134,8 @@ const TeamSetting: React.FC = observer(() => {
             toast.info(t('leaveTeamFailedText'))
           })
       }
+    }).catch(() => {
+      // 用户点击取消，不需要任何操作
     })
   }, [teamId])
 

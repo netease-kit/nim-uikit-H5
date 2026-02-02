@@ -34,9 +34,9 @@ const MessageFile: React.FC<MessageFileProps> = observer(({ msg }) => {
   const iconType = fileIconMap[getFileType(ext)] || 'icon-weizhiwenjian'
 
   // 处理文件名显示
-  const index = name.lastIndexOf('.') > -1 ? name.lastIndexOf('.') : name.length
-  const prefixName = name.slice(0, Math.max(index - 5, 0))
-  const suffixName = name.slice(Math.max(index - 5, 0))
+  const index = name.lastIndexOf('.')
+  const prefixName = index > -1 ? name.slice(0, index) : name
+  // const suffixName = name.slice(Math.max(index - 5, 0))
 
   // 下载链接
   const downloadUrl = url + ((url as string).includes('?') ? '&' : '?') + `download=${name}`
@@ -48,7 +48,7 @@ const MessageFile: React.FC<MessageFileProps> = observer(({ msg }) => {
         <div className="msg-file-content">
           <div className="msg-file-title">
             <div className="msg-file-title-prefix">{prefixName}</div>
-            <div className="msg-file-title-suffix">{suffixName}</div>
+            <div className="msg-file-title-suffix">{ext}</div>
           </div>
           <div className="msg-file-size">{parseFileSize(size)}</div>
         </div>

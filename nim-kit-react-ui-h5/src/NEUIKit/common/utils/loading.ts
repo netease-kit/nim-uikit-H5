@@ -1,10 +1,10 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
 import LoadingComponent, { LoadingRef } from '../components/Loading'
+// 使用兼容性适配层以支持 React 16/18 的渲染 API 差异
+import { reactDomCompat } from '../../../utils/reactDomCompat'
 
 // 存储加载实例的容器
 let loadingContainer: HTMLDivElement | null = null
-let loadingRoot: ReactDOM.Root | null = null
 let loadingInstance: LoadingRef | null = null
 
 /**
@@ -19,9 +19,11 @@ const createLoading = (): LoadingRef => {
   // 创建引用对象
   const loadingRef = React.createRef<LoadingRef>()
 
-  // 创建React根并渲染组件
-  loadingRoot = ReactDOM.createRoot(loadingContainer)
-  loadingRoot.render(React.createElement(LoadingComponent, { ref: loadingRef }))
+  // 使用兼容性适配层渲染组件
+  reactDomCompat.render(
+    React.createElement(LoadingComponent, { ref: loadingRef }), 
+    loadingContainer
+  )
 
   // 返回实例（注意：这依赖于实例在渲染后立即可用）
   // 理想情况下，我们应该用Promise和requestAnimationFrame来确保这一点
@@ -63,16 +65,16 @@ export const loading = {
    * 销毁Loading实例
    */
   destroy() {
-    if (loadingRoot) {
-      loadingRoot.unmount()
-    }
+    if (loadingContainer) {
+      // 使用兼容性适配层卸载组件
+      reactDomCompat.unmount(loadingContainer)
 
-    if (loadingContainer && document.body.contains(loadingContainer)) {
-      document.body.removeChild(loadingContainer)
+      if (document.body.contains(loadingContainer)) {
+        document.body.removeChild(loadingContainer)
+      }
     }
 
     loadingContainer = null
-    loadingRoot = null
     loadingInstance = null
   }
 }

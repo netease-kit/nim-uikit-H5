@@ -2,21 +2,24 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
 import Face from '@/NEUIKit/chat/message/face'
 import Icon from '@/NEUIKit/common/components/Icon'
-import Input from '@/NEUIKit/common/components/Input'
+import Input, { InputRef } from '@/NEUIKit/common/components/Input'
 import MessageOneLine from '@/NEUIKit/common/components/MessageOneLine'
 import Appellation from '@/NEUIKit/common/components/Appellation'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'
 import { useStateContext } from '@/NEUIKit/common/hooks/useStateContext'
-import { events, REPLY_MSG_TYPE_MAP } from '@/NEUIKit/common/utils/constants'
+import { events, REPLY_MSG_TYPE_MAP, AT_ALL_ACCOUNT, ALLOW_AT } from '@/NEUIKit/common/utils/constants'
 import { emojiMap } from '@/NEUIKit/common/utils/emoji'
 import { replaceEmoji } from '@/NEUIKit/common/utils'
 import { toast } from '@/NEUIKit/common/utils/toast'
 import emitter from '@/NEUIKit/common/utils/eventBus'
 import { V2NIMConst } from 'nim-web-sdk-ng/dist/esm/nim'
-import type { V2NIMMessageForUI } from '@xkit-yx/im-store-v2/dist/types/types'
+import type { V2NIMMessageForUI, YxServerExt, YxAitMsg } from '@xkit-yx/im-store-v2/dist/types/types'
 import type { V2NIMMessage } from 'nim-web-sdk-ng/dist/esm/nim/src/V2NIMMessageService'
 import type { V2NIMTeam, V2NIMTeamChatBannedMode, V2NIMTeamMember } from 'nim-web-sdk-ng/dist/esm/nim/src/V2NIMTeamService'
 import './index.less'
+import BottomPopup from '@/NEUIKit/common/components/BottomPopup'
+import MentionChooseList from '../mention-choose-list'
+import { flushSync } from 'react-dom'
 
 interface MessageInputProps {
   conversationType: V2NIMConst.V2NIMConversationType
@@ -58,6 +61,14 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
   const [isFocus, setIsFocus] = useState(false)
   const [replyMsg, setReplyMsg] = useState<V2NIMMessageForUI | undefined>()
 
+  // @消息相关
+  const [mentionPopupVisible, setMentionPopupVisible] = useState(false)
+  const [cursorPosition, setCursorPosition] = useState(0)
+  const [atPosition, setAtPosition] = useState(0)
+  const [selectedAtMembers, setSelectedAtMembers] = useState<{ accountId: string; appellation: string }[]>([])
+  // 修改为使用正确的类型
+  const inputRef = useRef<InputRef>(null)
+
   // 群相关
   const team = store.teamStore.teams.get(to)
   const teamMembers = store.teamMemberStore.getTeamMember(to)
@@ -70,9 +81,26 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
     if (isTeamOwner || isTeamManager) return false
     return true
   }, [teamMute, isTeamOwner, isTeamManager])
+  
+  // 是否允许@所有人
+  const allowAtAll = useMemo(() => {
+    let ext: YxServerExt = {};
+    try {
+      ext = JSON.parse((team?.serverExtension || "{}"));
+    } catch (error) {
+      // 解析错误时使用默认值
+    }
+    
+    if (ext[ALLOW_AT] === "manager") {
+      return isTeamOwner || isTeamManager;
+    }
+    return true;
+  }, [team?.serverExtension, isTeamOwner, isTeamManager]);
 
   // 图片输入引用
   const imageInputRef = useRef<HTMLInputElement>(null)
+  // 文件输入引用
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // 处理输入框聚焦
   const handleInputFocus = () => {
@@ -113,11 +141,13 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
 
     let text = replaceEmoji(inputText)
     const textMsg = nim.V2NIMMessageCreator.createTextMessage(text)
+    const ext = onAtMembersExtHandler();
 
     store.msgStore
       .sendMessageActive({
         msg: textMsg as unknown as V2NIMMessage,
         conversationId,
+        serverExtension: (selectedAtMembers.length ? ext : undefined) as any,
         sendBefore: () => {
           scrollBottom()
         }
@@ -130,8 +160,71 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
       })
 
     setInputText('')
+    setSelectedAtMembers([]) // 清除选中的@成员
     setIsReplyMsg(false)
   }
+
+  /**
+   * 处理选中的@ 成员，构建艾特消息的扩展字段
+   */
+  const onAtMembersExtHandler = () => {
+    let ext: YxServerExt | undefined;
+    
+    // 如果有选中的@成员，处理扩展字段
+    if (selectedAtMembers.length) {
+      // 过滤掉不允许@所有人的情况
+      const filteredMembers = selectedAtMembers.filter((member) => {
+        if (!allowAtAll && member.accountId === AT_ALL_ACCOUNT) {
+          return false;
+        }
+        return true;
+      });
+      
+      // 遍历每个成员，构建艾特消息扩展字段
+      filteredMembers.forEach((member) => {
+        const substr = `@${member.appellation}`;
+        const positions: number[] = [];
+        
+        // 查找所有@成员出现的位置
+        let pos = inputText.indexOf(substr);
+        while (pos !== -1) {
+          positions.push(pos);
+          pos = inputText.indexOf(substr, pos + 1);
+        }
+        
+        // 如果找到了@成员出现的位置，构建扩展字段
+        if (positions.length) {
+          if (!ext) {
+            ext = {
+              yxAitMsg: {
+                [member.accountId]: {
+                  text: substr,
+                  segments: [],
+                }
+              }
+            };
+          } else {
+            (ext.yxAitMsg as YxAitMsg)[member.accountId] = {
+              text: substr,
+              segments: [],
+            };
+          }
+          
+          // 添加每个出现位置的信息
+          positions.forEach((position) => {
+            const start = position;
+            (ext?.yxAitMsg as YxAitMsg)[member.accountId].segments.push({
+              start,
+              end: start + substr.length,
+              broken: false,
+            });
+          });
+        }
+      });
+    }
+    
+    return ext;
+  };
 
   // 移除回复消息
   const removeReplyMsg = () => {
@@ -196,6 +289,11 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
     imageInputRef.current?.click()
   }
 
+  const handleSendFileMsg = () => {
+    if (isTeamMute) return
+    fileInputRef.current?.click()
+  }
+
   // 处理图片选择
   const onImageSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -207,11 +305,12 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
       return
     }
 
-    try {
-      const imgMsg = nim.V2NIMMessageCreator.createImageMessage(file)
+    // 补充: 若图片超过 20MB, 当作文件对象发送而不是图片发送.
+    const fileMsg = file.size > 20 * 1024 * 1024 ? nim.V2NIMMessageCreator.createFileMessage(file) : nim.V2NIMMessageCreator.createImageMessage(file)
 
+    try {
       await store.msgStore.sendMessageActive({
-        msg: imgMsg as unknown as V2NIMMessage,
+        msg: fileMsg as unknown as V2NIMMessage,
         conversationId,
         progress: () => true,
         sendBefore: () => {
@@ -230,6 +329,94 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
       }
     }
   }
+
+  const onFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file) return
+
+    // 补充: 若图片超过 20MB, 当作文件对象发送而不是图片发送.
+    const fileMsg = nim.V2NIMMessageCreator.createFileMessage(file)
+
+    try {
+      await store.msgStore.sendMessageActive({
+        msg: fileMsg as unknown as V2NIMMessage,
+        conversationId,
+        progress: () => true,
+        sendBefore: () => {
+          scrollBottom()
+        }
+      })
+
+      scrollBottom()
+    } catch (err) {
+      scrollBottom()
+      toast.info(t('sendFileFailedText'))
+    } finally {
+      // 清空 input 的值，这样用户可以重复选择同一个文件
+      if (imageInputRef.current) {
+        imageInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleInputChange = (value) => {
+    setInputText(value)
+    
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    // 当前输入的是@ 展示群成员列表
+    if (
+      event.key === "@" &&
+      conversationType ===
+        V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM &&
+      event
+    ) {
+      const cursorPos = event.currentTarget.selectionStart || 0
+      setCursorPosition(cursorPos);
+      setAtPosition(cursorPos - 1); // 修复这里，将 cursorPosition.value 改为 cursorPos
+      setMentionPopupVisible(true)
+      event.currentTarget.blur();
+      
+    }
+  }
+
+  // 关闭mention
+  const handleCloseMention = () => {
+    setMentionPopupVisible(false)
+  };
+
+  const handleMentionSelect = (member) => {
+    const nickInTeam = member.appellation;
+    setSelectedAtMembers([...selectedAtMembers.filter(item => item.accountId !== member.accountId), member]);
+
+    // 在@符号位置插入@xxx，而不是追加到末尾
+    const currentText = inputText;
+    const beforeAt = currentText.substring(0, atPosition);
+    const afterAt = currentText.substring(atPosition + 1); // +1 跳过@符号
+    const newInputText = beforeAt + "@" + nickInTeam + " " + afterAt;
+
+    // 使用 flushSync 确保同步更新, 更新input框的内容
+    flushSync(() => {
+      setInputText(newInputText);
+      handleCloseMention();
+    })
+
+    try {
+      // 使用我们的 ref 来设置光标位置
+      if (inputRef.current) {
+        // 计算新的光标位置
+        const newCursorPos = atPosition + nickInTeam.length + 2; // @xxx + 空格
+        
+        // 使用 ref 的 setSelectionRange 方法
+        inputRef.current.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    } catch (error) {
+      console.error('Error setting cursor position:', error);
+    }
+  }
+
 
   // 监听群组信息
   useEffect(() => {
@@ -361,7 +548,8 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
               className="msg-input-input"
               placeholder={isTeamMute ? t('teamMutePlaceholder') : t('chatInputPlaceHolder')}
               value={inputText}
-              onChange={(value) => setInputText(value)}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
               disabled={isTeamMute}
               inputStyle={{
                 padding: '0 10px'
@@ -369,6 +557,7 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
               onConfirm={handleSendTextMsg}
               onBlur={handleInputBlur}
               onFocus={handleInputFocus}
+              ref={inputRef}
             />
           )}
         </div>
@@ -395,8 +584,27 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
             </div>
             <div className="icon-text">{t('albumText')}</div>
           </div>
+          <div className="send-more-panel-item-wrapper">
+            <div className="send-more-panel-item">
+              <input type="file" ref={fileInputRef} className="file-input-overlay" onChange={onFileSelected} />
+              <Icon size={26} type="icon-tupian" onClick={handleSendFileMsg} />
+            </div>
+            <div className="icon-text">{t('fileText')}</div>
+          </div>
         </div>
       )}
+
+      {/** 艾特消息弹出层 */}
+      {
+        <BottomPopup
+          visible={mentionPopupVisible}
+          onCancel={() => setMentionPopupVisible(false)}
+          showConfirm={false}
+          showCancel={true}
+        >
+          <MentionChooseList teamId={to} onClose={handleCloseMention} onMemberClick={handleMentionSelect}></MentionChooseList>
+        </BottomPopup>
+      }
     </div>
   )
 })

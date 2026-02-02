@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import NavBar from '@/NEUIKit/common/components/NavBar'
 import Input from '@/NEUIKit/common/components/Input'

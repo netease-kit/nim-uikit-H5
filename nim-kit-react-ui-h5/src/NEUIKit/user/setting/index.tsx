@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import NavBar from '@/NEUIKit/common/components/NavBar'
 import Switch from '@/NEUIKit/common/components/Switch'
@@ -59,6 +59,8 @@ const Setting: React.FC = observer(() => {
         // 跳转到登录页
         navigate(neUiKitRouterPath.login)
       }
+    }).catch(() => {
+      // 用户点击取消，不需要任何操作
     })
   }
 

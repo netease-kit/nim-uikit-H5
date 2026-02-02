@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import NavBar from '@/NEUIKit/common/components/NavBar'
 import Avatar from '@/NEUIKit/common/components/Avatar'

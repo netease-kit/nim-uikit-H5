@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import { autorun } from 'mobx'
 import { t } from '@/NEUIKit/common/utils/i18n'

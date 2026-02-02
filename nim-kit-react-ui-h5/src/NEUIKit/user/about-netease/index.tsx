@@ -2,14 +2,15 @@ import React from 'react'
 import NavBar from '@/NEUIKit/common/components/NavBar'
 import Icon from '@/NEUIKit/common/components/Icon'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import imPkg from 'nim-web-sdk-ng/package.json'
+import pkg from '../../../../package.json'
 import './index.less'
 
 // 由于无法直接导入SDK的package.json，这里使用一个假版本号
 // 实际项目中应该动态获取或从环境变量中读取
 const SDK_VERSION = imPkg.version
-const UIKIT_VERSION = '10.0.0'
+const UIKIT_VERSION = pkg.version
 const YUNXIN_WEBSITE = 'https://yunxin.163.com/'
 
 /**

@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react'
-import { history } from 'umi'
+import { useNavigate } from '@/utils/router'
 import Icon from '../Icon'
 import './index.less'
 
@@ -24,12 +24,14 @@ const NavBar: React.FC<NavBarProps> = ({
   iconContent,
   onBack
 }) => {
+  const navigate = useNavigate()
+
   // 处理返回事件
   const handleBack = () => {
     if (onBack) {
       onBack()
     } else {
-      history.back()
+      navigate(-1)
     }
   }
 

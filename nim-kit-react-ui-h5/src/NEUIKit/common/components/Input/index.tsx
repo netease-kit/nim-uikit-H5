@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, forwardRef, useImperativeHandle } from 'react'
 import classNames from 'classnames'
 import './index.less'
 
@@ -56,6 +56,10 @@ export interface InputProps {
    */
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void
   /**
+   * 键盘按下事件
+   */
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  /**
    * 清除事件
    */
   onClear?: () => void
@@ -65,10 +69,25 @@ export interface InputProps {
   onConfirm?: (value: string | number) => void
 }
 
+export interface InputRef {
+  /**
+   * 原生 input 元素
+   */
+  el: React.RefObject<HTMLInputElement>;
+  /**
+   * 设置选择范围
+   */
+  setSelectionRange: (start: number, end: number) => void;
+  /**
+   * 聚焦
+   */
+  focus: () => void;
+}
+
 /**
  * 基础输入框组件
  */
-const Input: React.FC<InputProps> = ({
+const Input = forwardRef<InputRef, InputProps>(({
   value,
   defaultValue = '',
   type = 'text',
@@ -83,8 +102,9 @@ const Input: React.FC<InputProps> = ({
   onFocus,
   onBlur,
   onClear,
-  onConfirm
-}) => {
+  onConfirm,
+  onKeyDown
+}, ref) => {
   const el = useRef<HTMLInputElement>(null)
   // 当前实际值
   const currentValue = typeof value !== 'undefined' ? value : typeof defaultValue !== 'undefined' ? defaultValue : ''
@@ -92,10 +112,23 @@ const Input: React.FC<InputProps> = ({
   // 是否正在使用中文输入. 防止 input 受控组件无法输入中文, 参见 https://www.tangshuang.net/7840.html
   let inputing = false
 
+  // 暴露给父组件的方法
+  useImperativeHandle(ref, () => ({
+    el,
+    setSelectionRange: (start: number, end: number) => {
+      if (el.current) {
+        el.current.focus();
+        el.current.setSelectionRange(start, end);
+      }
+    },
+    focus: () => {
+      el.current?.focus();
+    }
+  }), []);
+
   // 处理输入事件
   const handleChange = (event: React.ChangeEvent<HTMLInputElement> | React.CompositionEvent<HTMLInputElement>) => {
     const newValue = (event.target as HTMLInputElement).value
-
     onChange?.(newValue)
   }
 
@@ -120,6 +153,7 @@ const Input: React.FC<InputProps> = ({
       event.preventDefault() // 阻止默认的换行行为
       onConfirm?.(currentValue) // 触发发送事件
     }
+    onKeyDown?.(event)
   }
 
   return (
@@ -171,6 +205,6 @@ const Input: React.FC<InputProps> = ({
       )}
     </div>
   )
-}
+})
 
 export default Input

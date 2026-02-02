@@ -2,13 +2,27 @@ import { V2NIMConst } from "nim-web-sdk-ng/dist/esm/nim";
 import RootStore from "@xkit-yx/im-store-v2";
 import V2NIM from "nim-web-sdk-ng/dist/v2/NIM_BROWSER_SDK";
 import type { V2NIMMessage } from "nim-web-sdk-ng/dist/esm/nim/src/V2NIMMessageService";
+import type { LocalOptions } from "@xkit-yx/im-store-v2/dist/types/types";
+
+export const defaultLocalOptions: LocalOptions = {
+  // 添加好友是否需要验证
+  addFriendNeedVerify: false,
+  // 是否需要显示 p2p 消息、p2p会话列表消息已读未读，默认 false
+  p2pMsgReceiptVisible: true,
+  // 是否需要显示群组消息已读未读，默认 false
+  teamMsgReceiptVisible: true,
+  // 群组被邀请模式，默认需要验证
+  teamAgreeMode:
+    V2NIMConst.V2NIMTeamAgreeMode.V2NIM_TEAM_AGREE_MODE_NO_AUTH,
+}
+
 export const init = () => {
   // 是否开启云端会话，实际根据您的业务调整
   const enableV2CloudConversation =
     localStorage.getItem("enableV2CloudConversation") === "on";
   const nim = V2NIM.getInstance(
     {
-      appkey: "",
+      appkey: "3e215d27b6a6a9e27dad7ef36dd5b65c",
       needReconnect: true,
       debugLevel: "debug",
       apiVersion: "v2",
@@ -26,15 +40,7 @@ export const init = () => {
     // @ts-ignore
     nim,
     {
-      // 添加好友是否需要验证
-      addFriendNeedVerify: false,
-      // 是否需要显示 p2p 消息、p2p会话列表消息已读未读，默认 false
-      p2pMsgReceiptVisible: true,
-      // 是否需要显示群组消息已读未读，默认 false
-      teamMsgReceiptVisible: true,
-      // 群组被邀请模式，默认需要验证
-      teamAgreeMode:
-        V2NIMConst.V2NIMTeamAgreeMode.V2NIM_TEAM_AGREE_MODE_NO_AUTH,
+      ...defaultLocalOptions,
       // 发送消息前回调, 可对消息体进行修改，添加自定义参数
       sendMsgBefore: async (options: {
         msg: V2NIMMessage;

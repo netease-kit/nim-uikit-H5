@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import NavBar from '@/NEUIKit/common/components/NavBar'
 import UserCard from '@/NEUIKit/common/components/UserCard'
@@ -66,6 +66,8 @@ const FriendCard: React.FC = observer(() => {
           toast.info(t('deleteFriendFailText'))
         }
       }
+    }).catch(() => {
+      // 用户点击取消，不需要任何操作
     })
   }
 

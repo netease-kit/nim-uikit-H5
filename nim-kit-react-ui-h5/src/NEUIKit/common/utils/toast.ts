@@ -1,7 +1,8 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
 // 使用类型断言明确指定组件类型
 import ToastDefault, { ToastType, ToastProps } from '../components/Toast'
+// 使用兼容性适配层以支持 React 16/18 的渲染 API 差异
+import { reactDomCompat } from '../../../utils/reactDomCompat'
 
 // 明确声明组件类型
 const ToastComponent: React.FC<ToastProps> = ToastDefault as React.FC<ToastProps>
@@ -23,9 +24,8 @@ export interface ToastOptions {
   type?: ToastType
 }
 
-// 用于存储当前toast的容器和根
+// 用于存储当前toast的容器
 let container: HTMLDivElement | null = null
-let root: ReactDOM.Root | null = null
 
 /**
  * 显示Toast提示
@@ -39,41 +39,42 @@ export const showToast = (options: ToastOptions | string) => {
   if (!container) {
     container = document.createElement('div')
     document.body.appendChild(container)
-    root = ReactDOM.createRoot(container)
   }
 
-  // 渲染组件
-  root?.render(
+  // 使用兼容性适配层渲染组件
+  reactDomCompat.render(
     React.createElement(ToastComponent, {
       message: opt.message,
       duration: opt.duration,
       type: opt.type || 'info',
       visible: true
-    })
+    }),
+    container
   )
 
   // 自动清理
   const duration = opt.duration || 2000
   setTimeout(() => {
     // 渲染一个不可见的组件，以触发淡出动画
-    if (root) {
-      root.render(
+    if (container) {
+      reactDomCompat.render(
         React.createElement(ToastComponent, {
           message: opt.message,
           duration: opt.duration,
           type: opt.type || 'info',
           visible: false
-        })
+        }),
+        container
       )
     }
 
     // 动画结束后移除DOM元素
     setTimeout(() => {
-      if (container && root) {
-        root.unmount()
+      if (container) {
+        // 使用兼容性适配层卸载组件
+        reactDomCompat.unmount(container)
         document.body.removeChild(container)
         container = null
-        root = null
       }
     }, 300) // 等待动画完成
   }, duration)

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { history } from 'umi'
+import { useNavigate } from '@/utils/router'
 import { useStateContext } from '../../hooks/useStateContext'
 import { getAvatarBackgroundColor } from '../../utils'
 import './index.less'
@@ -64,6 +64,7 @@ const Avatar: React.FC<AvatarProps> = ({
   className = '',
   style = {}
 }) => {
+  const navigate = useNavigate()
   const { store, nim } = useStateContext()
   // 直接得到 user
   const user = store.userStore.users.get(account)
@@ -122,10 +123,10 @@ const Avatar: React.FC<AvatarProps> = ({
     if (gotoUserCard && !isLongPress) {
       if (account === store.userStore.myUserInfo.accountId) {
         // 跳转到我的详情页
-        history.push('/user/my-detail')
+        navigate('/user/my-detail')
       } else {
         // 跳转到好友名片页
-        history.push(`/friend/friend-card?accountId=${account}`)
+        navigate(`/friend/friend-card?accountId=${account}`)
       }
     }
   }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import Icon from '@/NEUIKit/common/components/Icon'
 import Badge from '@/NEUIKit/common/components/Badge'
@@ -8,7 +8,7 @@ import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'
 import { useStateContext } from '@/NEUIKit/common/hooks/useStateContext'
 import { neUiKitRouterPath } from '@/NEUIKit/common/utils/uikitRouter'
 import './index.less'
-// import { useEventTracking } from '../common/hooks/useEventTracking'
+import { useEventTracking } from '../common/hooks/useEventTracking'
 
 /**
  * 通讯录列表页面
@@ -23,9 +23,9 @@ const ContactList: React.FC = observer(() => {
   // 下拉菜单可见状态
   const [addDropdownVisible, setAddDropdownVisible] = useState(false)
 
-  // useEventTracking({
-  //   component: 'ContactUIKit'
-  // })
+  useEventTracking({
+    component: 'ContactUIKit'
+  })
 
   // 处理下拉菜单项点击
   const onDropdownClick = (urlType: 'addFriend' | 'createGroup') => {

@@ -1,6 +1,7 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
 import ModalDefault, { ModalProps } from '../components/Modal'
+// 使用兼容性适配层以支持 React 16/18 的渲染 API 差异
+import { reactDomCompat } from '../../../utils/reactDomCompat'
 
 // 明确声明组件类型
 const ModalComponent: React.FC<ModalProps> = ModalDefault as React.FC<ModalProps>
@@ -43,15 +44,12 @@ export const showModal = (options: ModalOptions) => {
   const container = document.createElement('div')
   document.body.appendChild(container)
 
-  // 创建根节点
-  const root = ReactDOM.createRoot(container)
-
   const { title, content, confirmText, cancelText, onConfirm, onCancel } = options
 
   // 销毁对话框
   const destroy = () => {
-    // 取消挂载组件
-    root.unmount()
+    // 使用兼容性适配层卸载组件
+    reactDomCompat.unmount(container)
 
     // 移除容器
     if (container.parentNode) {
@@ -59,8 +57,8 @@ export const showModal = (options: ModalOptions) => {
     }
   }
 
-  // 渲染组件
-  root.render(
+  // 使用兼容性适配层渲染组件
+  reactDomCompat.render(
     React.createElement(ModalComponent, {
       title: title,
       children: content,
@@ -75,7 +73,8 @@ export const showModal = (options: ModalOptions) => {
         onCancel?.()
         destroy()
       }
-    })
+    }),
+    container
   )
 
   // 返回销毁函数
@@ -104,7 +103,7 @@ export const modal = {
         },
         onCancel: () => {
           opts.onCancel?.()
-          reject()
+          reject(new Error('User cancelled'))
         }
       })
     })

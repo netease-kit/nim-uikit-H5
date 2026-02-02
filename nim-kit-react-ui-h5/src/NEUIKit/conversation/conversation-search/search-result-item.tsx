@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import Avatar from '@/NEUIKit/common/components/Avatar'
 import Appellation from '@/NEUIKit/common/components/Appellation'
 import { useTranslation } from '@/NEUIKit/common/hooks/useTranslate'

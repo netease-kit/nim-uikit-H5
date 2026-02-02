@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 
 import FormInput from './FormInput'
 import i18n from '../i18n/zh-CN'

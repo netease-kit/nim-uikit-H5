@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import { observer } from 'mobx-react-lite'
 import UserCard from '@/NEUIKit/common/components/UserCard'
 import Icon from '@/NEUIKit/common/components/Icon'
@@ -8,7 +8,7 @@ import { useStateContext } from '@/NEUIKit/common/hooks/useStateContext'
 import { V2NIMUser } from 'nim-web-sdk-ng/dist/esm/nim/src/V2NIMUserService'
 import { neUiKitRouterPath } from '@/NEUIKit/common/utils/uikitRouter'
 import './index.less'
-// import { useEventTracking } from '../common/hooks/useEventTracking'
+import { useEventTracking } from '../common/hooks/useEventTracking'
 
 /**
  * 用户中心组件
@@ -21,9 +21,9 @@ const User: React.FC = observer(() => {
   // 群组列表本地状态
   const [myUserInfo, setMyUserInfo] = useState<V2NIMUser>()
 
-  // useEventTracking({
-  //   component: 'UserUIKit'
-  // })
+  useEventTracking({
+    component: 'UserUIKit'
+  })
 
   // 从store获取群组列表数据
   useEffect(() => {

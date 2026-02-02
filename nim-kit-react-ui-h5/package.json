@@ -1,31 +1,52 @@
 {
   "name": "@xkit-yx/im-kit-react-ui-h5",
   "private": true,
-  "version": "10.0.0",
-  "author": "null",
+  "version": "10.1.0",
   "scripts": {
-    "dev": "umi dev",
-    "build": "umi build",
-    "postinstall": "umi setup",
-    "setup": "umi setup",
+    "dev": "webpack serve --mode development",
+    "build": "tsc --noEmit && webpack --mode production",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
     "start": "npm run dev"
   },
   "dependencies": {
-    "@xkit-yx/im-store-v2": "^0.8.5",
+    "@xkit-yx/im-store-v2": "^0.8.9",
     "@xkit-yx/utils": "^0.7.2",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.13",
     "mitt": "^3.0.1",
     "mobx": "^6.6.1",
     "mobx-react": "^7.5.2",
-    "nim-web-sdk-ng": "^10.9.20",
+    "nim-web-sdk-ng": "^10.9.75",
+    "react-router-dom": "^6.22.0",
     "react-string-replace": "^1.1.0",
-    "react-virtualized": "^9.22.5",
-    "umi": "^4.4.4"
+    "react-virtualized": "^9.22.5"
   },
   "devDependencies": {
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@babel/preset-react": "^7.23.3",
+    "@babel/preset-typescript": "^7.23.3",
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",
-    "typescript": "^5.0.3"
+    "babel-loader": "^9.1.3",
+    "css-loader": "^6.10.0",
+    "css-minimizer-webpack-plugin": "^6.0.0",
+    "html-webpack-plugin": "^5.6.0",
+    "less": "^4.2.0",
+    "less-loader": "^11.1.4",
+    "mini-css-extract-plugin": "^2.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "style-loader": "^3.3.4",
+    "terser-webpack-plugin": "^5.3.10",
+    "typescript": "^5.0.3",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
+  },
+  "peerDependencies": {
+    "react": ">=16.14.0",
+    "react-dom": ">=16.14.0"
   }
 }

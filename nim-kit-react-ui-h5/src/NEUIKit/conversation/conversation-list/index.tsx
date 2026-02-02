@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@/utils/router'
 import Icon from '@/NEUIKit/common/components/Icon'
 import NetworkAlert from '@/NEUIKit/common/components/NetworkAlert'
 import Empty from '@/NEUIKit/common/components/Empty'
@@ -11,7 +11,7 @@ import { toast } from '@/NEUIKit/common/utils/toast'
 import { neUiKitRouterPath } from '@/NEUIKit/common/utils/uikitRouter'
 import type { V2NIMConversationForUI, V2NIMLocalConversationForUI } from '@xkit-yx/im-store-v2/dist/types/types'
 import './index.less'
-// import { useEventTracking } from '@/NEUIKit/common/hooks/useEventTracking'
+import { useEventTracking } from '@/NEUIKit/common/hooks/useEventTracking'
 
 /**
  * 会话列表组件
@@ -39,9 +39,9 @@ const ConversationList: React.FC = observer(() => {
   }, [])
 
   // 初始化埋点
-  // useEventTracking({
-  //   component: 'ContactUIKit'
-  // })
+  useEventTracking({
+    component: 'ContactUIKit'
+  })
 
   // 处理滚动事件
   const handleScroll = async (e: React.UIEvent<HTMLDivElement>) => {

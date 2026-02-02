@@ -1,5 +1,5 @@
 // NIM SDK 的 appkey 配置
-export const NIM_APP_KEY = '3e215d27b6a6a9e27dad7ef36dd5b65c'
+export const NIM_APP_KEY = '***************************'
 // NIM 的日志输出等级
 export const NIM_DEBUG_LEVEL = 'debug'
 // NIM 的 LBS 负载均衡服务地址

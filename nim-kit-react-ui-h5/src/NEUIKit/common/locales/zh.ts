@@ -79,6 +79,7 @@ export default {
   deleteStickTopFailText: '取消置顶失败',
   addStickTopFailText: '置顶消息失败',
   teamMemberText: '群成员',
+  teamIdText: '群号',
   teamManagerText: '群管理',
   teamManagerSettingText: '管理管理员',
   updateTeamInfoText: '谁可以编辑群信息',

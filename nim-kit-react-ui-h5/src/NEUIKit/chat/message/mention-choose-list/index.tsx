@@ -119,6 +119,7 @@ const MentionChooseList: React.FC<MentionChooseListProps> = ({
         ? member
         : {
             accountId: member.accountId,
+            // 不设置 ignoreAlias，使用默认值 false，确保与列表显示的名称一致（优先显示备注名）
             appellation: store?.uiStore.getAppellation({
               account: member.accountId,
               teamId: (member as V2NIMTeamMember).teamId,

@@ -74,6 +74,8 @@ const Chat = observer(() => {
    * 返回会话列表
    */
   const backToConversation = () => {
+    // 在导航离开前清除选中的会话，以便后续收到消息时能正确计算未读数
+    store.uiStore.unselectConversation()
     navigate(neUiKitRouterPath.conversation)
   }
 

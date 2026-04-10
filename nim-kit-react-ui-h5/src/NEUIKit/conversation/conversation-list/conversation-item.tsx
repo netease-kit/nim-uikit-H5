@@ -90,7 +90,39 @@ const ConversationItem: React.FC<ConversationItemProps> = observer(
     const isMute = !!conversation.mute
 
     // 是否有@消息
-    const beMentioned = !!conversation.aitMsgs?.length
+    // 1. 优先检查 aitMsgs（SDK维护的@消息列表）
+    // 2. 如果 aitMsgs 为空但有未读消息，则检查最后一条消息的 serverExtension（用于免打扰状态下的补充检测）
+    // 3. 消息已读后（unreadCount 为 0 且 aitMsgs 为空），不再显示@提示
+    const beMentioned = (() => {
+      // 如果 aitMsgs 有值，直接使用（SDK会在消息已读后清空）
+      if (conversation.aitMsgs?.length) {
+        return true
+      }
+      
+      // 如果没有未读消息，不显示@提示
+      if (conversation.unreadCount === 0) {
+        return false
+      }
+      
+      // 有未读消息时，检查最后一条消息是否@了当前用户（用于免打扰状态下的补充检测）
+      const lastMsg = conversation.lastMessage
+      if (!lastMsg?.serverExtension) {
+        return false
+      }
+      
+      try {
+        const ext = JSON.parse(lastMsg.serverExtension)
+        if (!ext?.yxAitMsg) {
+          return false
+        }
+        
+        const myAccountId = store.nim.V2NIMLoginService.getLoginUser()
+        // 检查是否@了当前用户或@了所有人
+        return myAccountId in ext.yxAitMsg || 'ait_all' in ext.yxAitMsg
+      } catch {
+        return false
+      }
+    })()
 
     // 是否显示消息已读状态
     const showSessionUnread = (() => {

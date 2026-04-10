@@ -163,15 +163,56 @@ const MessageBubble: React.FC<MessageBubbleProps> = observer(({ msg, tooltipVisi
       title: t('deleteText'),
       content: t('delete'),
       confirmText: t('deleteText'),
-      onConfirm: () => {
-        store.msgStore
-          .deleteMsgActive([msg])
-          .then(() => {
-            toast.info(t('deleteMsgSuccessText'))
-          })
-          .catch(() => {
-            toast.info(t('deleteMsgFailText'))
-          })
+      onConfirm: async () => {
+        try {
+          await store.msgStore.deleteMsgActive([msg])
+          toast.info(t('deleteMsgSuccessText'))
+          
+          // 删除消息后，更新会话的 lastMessage
+          // 获取当前会话的消息列表
+          const msgs = store.msgStore.getMsg(msg.conversationId) || []
+          
+          // 获取会话对象
+          const enableV2CloudConversation = store.sdkOptions?.enableV2CloudConversation
+          const conversation = enableV2CloudConversation
+            ? store.conversationStore?.conversations.get(msg.conversationId)
+            : store.localConversationStore?.conversations.get(msg.conversationId)
+          
+          if (conversation) {
+            // 如果还有消息，使用最后一条消息更新 lastMessage
+            if (msgs.length > 0) {
+              const lastMsg = msgs[msgs.length - 1]
+              // 更新会话的 lastMessage
+              // @ts-ignore 直接修改 MobX observable 属性
+              conversation.lastMessage = {
+                ...conversation.lastMessage,
+                messageRefer: {
+                  senderId: lastMsg.senderId,
+                  receiverId: lastMsg.receiverId,
+                  messageClientId: lastMsg.messageClientId,
+                  messageServerId: lastMsg.messageServerId,
+                  conversationId: lastMsg.conversationId,
+                  conversationType: lastMsg.conversationType,
+                  createTime: lastMsg.createTime
+                },
+                messageType: lastMsg.messageType,
+                subType: lastMsg.subType,
+                sendingState: lastMsg.sendingState,
+                text: lastMsg.text,
+                attachment: lastMsg.attachment,
+                serverExtension: lastMsg.serverExtension,
+                callbackExtension: lastMsg.callbackExtension,
+                lastMessageState: V2NIMConst.V2NIMLastMessageState.V2NIM_MESSAGE_STATUS_DEFAULT
+              }
+            } else {
+              // 如果没有消息了，清空 lastMessage
+              // @ts-ignore
+              conversation.lastMessage = undefined
+            }
+          }
+        } catch {
+          toast.info(t('deleteMsgFailText'))
+        }
         closeTooltip()
       },
       onCancel: () => {

@@ -1,7 +1,7 @@
 {
   "name": "@xkit-yx/im-kit-react-ui-h5",
   "private": true,
-  "version": "10.1.0",
+  "version": "10.1.1",
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "tsc --noEmit && webpack --mode production",

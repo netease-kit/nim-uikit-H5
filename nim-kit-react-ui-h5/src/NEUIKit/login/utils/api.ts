@@ -1,7 +1,4 @@
-import { NIM_APP_KEY } from '@/config'
-
-// API 基础路径
-const baseUrl = 'https://yiyong-user-center.netease.im'
+import { NIM_APP_KEY, USER_CENTER_BASE_URL } from '@/config'
 
 // 接口请求头
 const loginByCodeHeader: { [key: string]: string | number } = {
@@ -36,7 +33,7 @@ export interface LoginRegisterByCodeRes {
  * @returns Promise<LoginSmsCodeRes>
  */
 export const getLoginSmsCode = (data: { mobile: string }): Promise<LoginSmsCodeRes> => {
-  const url = baseUrl + urlMap.getLoginSmsCode
+  const url = USER_CENTER_BASE_URL + urlMap.getLoginSmsCode
 
   return fetch(url, {
     method: 'POST',
@@ -60,7 +57,7 @@ export const getLoginSmsCode = (data: { mobile: string }): Promise<LoginSmsCodeR
  * @returns Promise<LoginRegisterByCodeRes>
  */
 export const loginRegisterByCode = (data: { mobile: string; smsCode: string }): Promise<LoginRegisterByCodeRes> => {
-  const url = baseUrl + urlMap.loginRegisterByCode
+  const url = USER_CENTER_BASE_URL + urlMap.loginRegisterByCode
 
   return fetch(url, {
     method: 'POST',

@@ -66,6 +66,7 @@ export default {
   deleteStickTopFailText: 'Unpin Chat Failed',
   addStickTopFailText: 'Pin Message Failed',
   teamMemberText: 'Team Members',
+  teamIdText: 'Team ID',
   saveText: 'Save',
   setText: 'Settings',
   failText: 'Failed',

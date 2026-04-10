@@ -160,6 +160,7 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
       })
 
     setInputText('')
+    prevInputTextRef.current = '' // 同步重置，确保后续@检测正常工作
     setSelectedAtMembers([]) // 清除选中的@成员
     setIsReplyMsg(false)
   }
@@ -360,30 +361,246 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
     }
   }
 
-  const handleInputChange = (value) => {
-    setInputText(value)
+  // 用于存储上一次输入的文本，用于检测@字符的输入
+  const prevInputTextRef = useRef(inputText)
+
+  /**
+   * 查找新增@符号的位置
+   * 通过比较新旧文本中@的数量和位置来确定新增@的位置
+   */
+  const findNewAtPosition = (newText: string, prevText: string): number => {
+    const prevAtCount = (prevText.match(/@/g) || []).length
+    const newAtCount = (newText.match(/@/g) || []).length
     
+    // @数量没有增加，说明没有新输入@
+    if (newAtCount <= prevAtCount) {
+      return -1
+    }
+    
+    // 遍历新文本，通过比较前缀中@的数量来找出新增@的位置
+    let prevIdx = 0
+    for (let i = 0; i < newText.length; i++) {
+      if (newText[i] !== '@') {
+        continue
+      }
+      
+      // 检查这个@是否是新增的：比较前缀中@的数量
+      const prefixInNew = newText.substring(0, i)
+      const prefixAtCount = (prefixInNew.match(/@/g) || []).length
+      const prefixInPrev = prevText.substring(0, Math.min(i, prevText.length))
+      const prevPrefixAtCount = (prefixInPrev.match(/@/g) || []).length
+      
+      if (prefixAtCount > prevPrefixAtCount) {
+        return i
+      }
+      
+      // 更新 prevIdx 用于后续比较
+      const prevAtPos = prevText.indexOf('@', prevIdx)
+      prevIdx = prevAtPos !== -1 ? prevAtPos + 1 : prevIdx
+    }
+    
+    // 备用逻辑：使用最后一个@的位置
+    return newText.lastIndexOf('@')
+  }
+
+  /**
+   * 显示@成员选择弹窗
+   */
+  const showMentionPopup = (atPos: number) => {
+    setAtPosition(atPos)
+    setCursorPosition(atPos + 1)
+    
+    // 延迟显示弹窗，确保输入框内容已更新
+    setTimeout(() => {
+      setMentionPopupVisible(true)
+      // 让输入框失焦以便弹出成员列表
+      try {
+        document.getElementById('msg-input')?.blur()
+      } catch {
+        // ignore
+      }
+    }, 50)
+  }
+
+  /**
+   * 检测单个@成员是否被部分删除，如果是则返回删除残留后的文本
+   */
+  const removeAtMemberResidue = (
+    member: { accountId: string; appellation: string },
+    newValue: string,
+    prevValue: string
+  ): string | null => {
+    const atText = `@${member.appellation}`
+    
+    // @xxx在新文本中完整存在，不需要处理
+    if (newValue.includes(atText)) {
+      return null
+    }
+    
+    // 查找旧文本中@xxx的位置
+    const posInPrev = prevValue.indexOf(atText)
+    if (posInPrev === -1) {
+      return null
+    }
+    
+    // @xxx在旧文本中存在但在新文本中不完整，说明被部分删除
+    const deleteStart = findDeletePosition(prevValue, newValue)
+    if (deleteStart === -1) {
+      return null
+    }
+    
+    // 检查删除位置是否在@xxx范围内
+    const atStart = posInPrev
+    const atEnd = posInPrev + atText.length
+    if (deleteStart < atStart || deleteStart >= atEnd) {
+      return null
+    }
+    
+    // 删除发生在@xxx内部，需要整体删除@xxx的残留部分
+    const beforeAt = prevValue.substring(0, atStart)
+    const afterAt = prevValue.substring(atEnd)
+    
+    // 计算残留部分在新文本中的位置
+    const residueStart = beforeAt.length
+    const residueEnd = newValue.length - afterAt.length
+    
+    if (residueEnd <= residueStart) {
+      return null
+    }
+    
+    // 返回删除残留部分后的文本
+    return newValue.substring(0, residueStart) + newValue.substring(residueEnd)
+  }
+
+  /**
+   * 检测@成员是否被部分删除，如果是则整体删除
+   * 返回处理后的文本和需要保留的@成员列表
+   */
+  const handleAtMemberDelete = (newValue: string, prevValue: string): { text: string; membersToKeep: typeof selectedAtMembers } => {
+    // 如果没有@成员，不需要处理
+    if (selectedAtMembers.length === 0) {
+      return { text: newValue, membersToKeep: [] }
+    }
+    
+    // 如果文本长度增加或不变，不需要处理删除逻辑
+    if (newValue.length >= prevValue.length) {
+      return { text: newValue, membersToKeep: selectedAtMembers }
+    }
+    
+    let resultText = newValue
+    const membersToKeep: typeof selectedAtMembers = []
+    
+    // 遍历所有@成员，检查其对应的@xxx是否仍完整存在
+    for (const member of selectedAtMembers) {
+      const atText = `@${member.appellation}`
+      
+      // 检查新文本中是否完整包含@xxx
+      if (resultText.includes(atText)) {
+        membersToKeep.push(member)
+        continue
+      }
+      
+      // @xxx不完整存在，尝试删除残留部分
+      const cleanedText = removeAtMemberResidue(member, resultText, prevValue)
+      if (cleanedText !== null) {
+        resultText = cleanedText
+      }
+    }
+    
+    return { text: resultText, membersToKeep }
+  }
+  
+  /**
+   * 查找删除操作发生的位置
+   * 通过比较新旧文本找出删除的起始位置
+   */
+  const findDeletePosition = (prevText: string, newText: string): number => {
+    // 从头开始比较，找到第一个不同的位置
+    const minLen = Math.min(prevText.length, newText.length)
+    for (let i = 0; i < minLen; i++) {
+      if (prevText[i] !== newText[i]) {
+        return i
+      }
+    }
+    // 如果前面都相同，删除发生在末尾
+    return newText.length
+  }
+
+  const handleInputChange = (value: string) => {
+    const prevValue = prevInputTextRef.current
+    
+    // 处理@成员的整体删除逻辑
+    if (value.length < prevValue.length && selectedAtMembers.length > 0) {
+      const { text, membersToKeep } = handleAtMemberDelete(value, prevValue)
+      
+      // 更新状态
+      setInputText(text)
+      prevInputTextRef.current = text
+      setSelectedAtMembers(membersToKeep)
+      return
+    }
+    
+    // 更新状态（无论如何都要执行）
+    setInputText(value)
+    prevInputTextRef.current = value
+    
+    // 以下是@检测逻辑，使用提前退出模式减少嵌套
+    // 这种方式兼容 Android 真机，因为 Android 上 keydown 事件的 event.key 通常是 "Unidentified"
+    
+    // 非群聊场景，不需要@功能
+    if (conversationType !== V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM) {
+      return
+    }
+    
+    // 弹窗已显示，不需要重复触发
+    if (mentionPopupVisible) {
+      return
+    }
+    
+    // 文本长度没有增加（可能是删除操作），不需要检测@
+    const lengthDiff = value.length - prevValue.length
+    if (lengthDiff <= 0) {
+      return
+    }
+    
+    // 查找新增@的位置
+    const atPos = findNewAtPosition(value, prevValue)
+    if (atPos === -1) {
+      return
+    }
+    
+    // 找到新增的@，显示弹窗
+    showMentionPopup(atPos)
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     // 当前输入的是@ 展示群成员列表
+    // 注意：此方法在 Android 真机上可能不触发（event.key 为 "Unidentified"）
+    // 主要依赖 handleInputChange 中的检测逻辑，此处作为 iOS/桌面浏览器的快速响应后备
     if (
       event.key === "@" &&
-      conversationType ===
-        V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM &&
-      event
+      conversationType === V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM &&
+      !mentionPopupVisible
     ) {
       const cursorPos = event.currentTarget.selectionStart || 0
-      setCursorPosition(cursorPos);
-      setAtPosition(cursorPos - 1); // 修复这里，将 cursorPosition.value 改为 cursorPos
+      setCursorPosition(cursorPos)
+      setAtPosition(cursorPos) // 注意：keydown 时@还没有被输入，所以位置是当前光标位置
       setMentionPopupVisible(true)
-      event.currentTarget.blur();
-      
+      event.currentTarget.blur()
     }
   }
 
-  // 关闭mention
+  // 关闭mention（取消选择时）
   const handleCloseMention = () => {
+    // 检查输入框中atPosition位置是否有@符号
+    // 如果没有（可能是handleKeyDown中blur阻止了输入），则补上@符号
+    if (inputText[atPosition] !== '@') {
+      const beforeAt = inputText.substring(0, atPosition)
+      const afterAt = inputText.substring(atPosition)
+      const newText = beforeAt + '@' + afterAt
+      setInputText(newText)
+      prevInputTextRef.current = newText
+    }
     setMentionPopupVisible(false)
   };
 
@@ -394,13 +611,29 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
     // 在@符号位置插入@xxx，而不是追加到末尾
     const currentText = inputText;
     const beforeAt = currentText.substring(0, atPosition);
-    const afterAt = currentText.substring(atPosition + 1); // +1 跳过@符号
+    
+    // 检查atPosition位置是否真的是@符号
+    // 在handleKeyDown中，atPosition是@输入前的光标位置，blur()可能阻止@输入
+    // 在handleInputChange中，atPosition是@在文本中的实际位置
+    let afterAt;
+    if (currentText[atPosition] === '@') {
+      // @符号已在文本中，跳过它
+      afterAt = currentText.substring(atPosition + 1);
+    } else {
+      // @符号不在文本中（handleKeyDown触发时blur阻止了输入，或state未更新）
+      afterAt = currentText.substring(atPosition);
+    }
+    
     const newInputText = beforeAt + "@" + nickInTeam + " " + afterAt;
 
+    // 同步更新 prevInputTextRef，避免触发重复的@检测
+    prevInputTextRef.current = newInputText
+
     // 使用 flushSync 确保同步更新, 更新input框的内容
+    // 注意：这里直接关闭弹窗，不调用handleCloseMention，因为handleCloseMention会检查并补@符号
     flushSync(() => {
       setInputText(newInputText);
-      handleCloseMention();
+      setMentionPopupVisible(false);
     })
 
     try {
@@ -451,15 +684,82 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
         setIsReplyMsg(true)
       }
 
-      setInputText(msg?.oldText || '')
+      const oldText = msg?.oldText || ''
+      
+      // 同步更新 prevInputTextRef，避免后续输入时触发@检测
+      prevInputTextRef.current = oldText
+      setInputText(oldText)
       setIsFocus(true)
+      
+      // 从撤回消息的扩展字段中解析@成员信息，回填到 selectedAtMembers
+      // 这样重新编辑后发送的消息仍然能正确识别为艾特消息
+      if (msg?.serverExtension) {
+        try {
+          const ext = JSON.parse(msg.serverExtension) as YxServerExt
+          if (ext?.yxAitMsg) {
+            const atMembers: { accountId: string; appellation: string }[] = []
+            
+            // 遍历艾特消息扩展字段，提取成员信息
+            for (const accountId of Object.keys(ext.yxAitMsg)) {
+              const aitInfo = ext.yxAitMsg[accountId]
+              if (aitInfo?.text) {
+                // text 格式为 "@xxx"，需要去掉开头的@
+                const appellation = aitInfo.text.startsWith('@') 
+                  ? aitInfo.text.substring(1) 
+                  : aitInfo.text
+                atMembers.push({ accountId, appellation })
+              }
+            }
+            
+            if (atMembers.length > 0) {
+              setSelectedAtMembers(atMembers)
+            }
+          }
+        } catch {
+          // 解析扩展字段失败，忽略
+        }
+      }
     }
 
     // 回复消息
     const onReplyMsg = (msg: any) => {
+      const replyMessage = msg as V2NIMMessageForUI
       setIsReplyMsg(true)
       setIsFocus(true)
-      setReplyMsg(msg as V2NIMMessageForUI)
+      setReplyMsg(replyMessage)
+      
+      // 群聊中自动@被回复人（非自己发送的消息）
+      if (
+        conversationType === V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_TEAM &&
+        replyMessage.senderId !== store.userStore.myUserInfo?.accountId
+      ) {
+        const appellation = store.uiStore.getAppellation({
+          account: replyMessage.senderId,
+          teamId: to,
+          ignoreAlias: true,
+        })
+        
+        if (appellation) {
+          // 将被回复人添加到@成员列表
+          const newMember = { accountId: replyMessage.senderId, appellation }
+          setSelectedAtMembers((prev) => {
+            // 避免重复添加
+            if (prev.some((m) => m.accountId === replyMessage.senderId)) {
+              return prev
+            }
+            return [...prev, newMember]
+          })
+          
+          // 在输入框中添加@被回复人
+          setInputText((prev) => {
+            const atText = `@${appellation} `
+            const newText = atText + prev
+            // 同步更新 prevInputTextRef，避免触发重复的@检测
+            prevInputTextRef.current = newText
+            return newText
+          })
+        }
+      }
     }
 
     // 关闭面板
@@ -598,7 +898,7 @@ const MessageInput: React.FC<MessageInputProps> = observer(({ conversationType, 
       {
         <BottomPopup
           visible={mentionPopupVisible}
-          onCancel={() => setMentionPopupVisible(false)}
+          onCancel={handleCloseMention}
           showConfirm={false}
           showCancel={true}
         >

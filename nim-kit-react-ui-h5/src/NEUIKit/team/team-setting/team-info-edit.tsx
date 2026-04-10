@@ -50,7 +50,7 @@ const TeamInfoEdit: React.FC = observer(() => {
   }, [teamId])
 
   return (
-    <div className="team-set-container-wrapper">
+    <div className="team-info-edit-wrapper">
       <NavBar title={t('teamInfoText')} />
       {team && (
         <div className="team-set-container">

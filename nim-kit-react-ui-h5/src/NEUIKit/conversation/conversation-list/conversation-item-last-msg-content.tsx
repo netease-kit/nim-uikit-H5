@@ -50,39 +50,47 @@ const LastMsgContent: React.FC<LastMsgContentProps> = observer(({ lastMessage })
     const matches: ParsedItem[] = []
     let match
     const regexEmoji = emojiRegExp
-    let workingText = text
-
-    // 先找出所有表情符号
-    while ((match = regexEmoji.exec(workingText)) !== null) {
+    
+    // 重置正则表达式的lastIndex
+    regexEmoji.lastIndex = 0
+    
+    // 使用一个临时变量记录已处理的位置
+    let lastIndex = 0
+    
+    // 找出所有表情符号，并记录它们之间的文本
+    while ((match = regexEmoji.exec(text)) !== null) {
+      // 如果表情前面有文本，记录下来
+      if (match.index > lastIndex) {
+        const textBefore = text.slice(lastIndex, match.index)
+        if (textBefore) {
+          matches.push({
+            type: 'text',
+            value: textBefore,
+            index: lastIndex
+          })
+        }
+      }
+      
+      // 记录表情
       matches.push({
         type: 'emoji',
         value: match[0],
         index: match.index
       })
-      const fillText = ' '.repeat(match[0].length)
-      workingText = workingText.replace(match[0], fillText)
+      
+      lastIndex = match.index + match[0].length
     }
-
-    // 替换所有表情符号为空格
-    workingText = workingText.replace(regexEmoji, ' ')
-
-    // 找出所有文本部分
-    if (workingText) {
-      workingText
-        .split(' ')
-        .filter((item) => item.trim())
-        .forEach((item) => {
-          const index = workingText.indexOf(item)
-          if (index !== -1) {
-            matches.push({
-              type: 'text',
-              value: item,
-              index
-            })
-            const fillText = ' '.repeat(item.length)
-            workingText = workingText.replace(item, fillText)
-          }
+    
+    // 如果最后还有剩余文本，记录下来
+    if (lastIndex < text.length) {
+      const remainingText = text.slice(lastIndex)
+      if (remainingText) {
+        matches.push({
+          type: 'text',
+          value: remainingText,
+          index: lastIndex
         })
+      }
     }
 
     // 按索引排序

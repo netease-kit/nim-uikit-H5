@@ -227,7 +227,10 @@ const TeamSetting: React.FC = observer(() => {
             <div className="team-set-item">
               <div className="team-info-item" onClick={handleInfoClick}>
                 <Avatar account={team.teamId} avatar={team.avatar} />
-                <div className="team-info-title team-title">{team.name}</div>
+                <div className="team-info-content">
+                  <div className="team-info-title team-title">{team.name}</div>
+                  <div className="team-info-id">{t('teamIdText')}: {team.teamId}</div>
+                </div>
                 <Icon iconClassName="more-icon" style={{ color: '#999' }} type="icon-jiantou" />
               </div>
             </div>

@@ -1,0 +1,153 @@
+<template>
+  <div class="msg-face-wrapper">
+    <div class="msg-face">
+      <div
+        v-for="(emojiRow, rowIndex) in emojiMatrix"
+        :key="rowIndex"
+        class="msg-face-row"
+      >
+        <div
+          @click="
+            () => {
+              handleEmojiClick({ key, type: emojiMap[key] });
+            }
+          "
+          v-for="key in emojiRow"
+          :key="key"
+          class="msg-face-item"
+        >
+          <Icon :size="27" :type="emojiMap[key]"></Icon>
+        </div>
+        <!-- 下面放三个看不到的 Icon 占个位 -->
+        <Icon
+          v-if="rowIndex + 1 === Math.ceil(emojiArr.length / emojiColNum)"
+          class="msg-face-delete"
+          :size="27"
+          type="icon-tuigejian"
+        ></Icon>
+        <Icon
+          v-if="rowIndex + 1 === Math.ceil(emojiArr.length / emojiColNum)"
+          class="msg-face-delete"
+          :size="27"
+          type="icon-tuigejian"
+        ></Icon>
+        <Icon
+          v-if="rowIndex + 1 === Math.ceil(emojiArr.length / emojiColNum)"
+          class="msg-face-delete"
+          :size="27"
+          type="icon-tuigejian"
+        ></Icon>
+      </div>
+    </div>
+    <div class="emoji-block"></div>
+    <div class="msg-face-control">
+      <div @click="handleEmojiDelete" class="msg-delete-btn">
+        <Icon type="icon-tuigejian" :size="25" :color="'#000'" />
+      </div>
+      <div @click="handleEmojiSend" class="msg-send-btn">
+        {{ t("sendText") }}
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { emojiMap } from "../../utils/emoji";
+import { culculateMatrix } from "../../utils/matrix";
+import Icon from "../../CommonComponents/Icon.vue";
+import { t } from "../../utils/i18n";
+
+const emojiArr = Object.keys(emojiMap);
+const emojiColNum = 7;
+
+export default {
+  name: "MessageFacePanel",
+  components: {
+    Icon,
+  },
+  data() {
+    return {
+      emojiMap,
+      emojiArr,
+      emojiColNum,
+      emojiMatrix: culculateMatrix(emojiArr, emojiColNum),
+      t,
+    };
+  },
+  methods: {
+    handleEmojiClick(emoji) {
+      this.$emit("emojiClick", emoji);
+    },
+    handleEmojiDelete() {
+      this.$emit("emojiDelete");
+    },
+    handleEmojiSend() {
+      this.$emit("emojiSend");
+    },
+  },
+};
+</script>
+
+<style scoped>
+.msg-face-wrapper {
+  box-sizing: border-box;
+}
+
+.msg-face-control {
+  position: fixed;
+  bottom: 8px;
+  right: 10px;
+  z-index: 8;
+}
+
+.emoji-block {
+  width: 100%;
+  height: 40px;
+  background-color: transparent;
+}
+
+.msg-face {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+
+.msg-face-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 12px;
+}
+
+.msg-face-row:last-child {
+  flex-basis: 57.14%;
+}
+
+.msg-face-item {
+  font-size: 27px;
+}
+
+.msg-face-delete {
+  font-size: 27px;
+  visibility: hidden;
+}
+
+.msg-face-control {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.msg-send-btn {
+  padding: 6px 16px;
+  color: #fff;
+  background-color: #337eff;
+}
+
+.msg-delete-btn {
+  background-color: #fff;
+  margin-right: 10px;
+  padding: 0 16px;
+}
+</style>

@@ -10,6 +10,7 @@ nim-uikit-h5 界面效果如下图所示：
 ```
 .
 ├── nim-kit-vue-ui-h5. vue3 版本的 h5 uikit
+├── nim-kit-vue2-ui-h5  vue2 版本的 h5 uikit
 └── nim-kit-react-ui-h5  react18 版本的 h5 uikit
 ```
 

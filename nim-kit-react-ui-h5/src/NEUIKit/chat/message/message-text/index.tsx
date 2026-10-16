@@ -14,15 +14,19 @@ interface MessageTextProps {
 /**
  * 文本消息组件
  * 支持文本、@、表情和链接混排显示
+ *
+ * 注意：fontSize 不要在参数里写默认值。若写成 fontSize = 16，
+ * 下面就变成了 16 || 22，表情图标的 22 兜底永远不生效（表情和文字一样大）；
+ * vue 侧 prop 没有默认值，兜底 22 是生效的。两端统一：文字默认 16px、表情默认 22px。
  */
-const MessageText: React.FC<MessageTextProps> = ({ msg, fontSize = 16, disableAit = false }) => {
+const MessageText: React.FC<MessageTextProps> = ({ msg, fontSize, disableAit = false }) => {
   // 解析文本
   const textArr = useMemo(() => {
     return parseText(msg?.text || '', disableAit ? undefined : msg?.serverExtension)
   }, [disableAit, msg?.serverExtension, msg?.text])
 
   return (
-    <div className="msg-text" style={{ fontSize: `${fontSize}px` }}>
+    <div className="msg-text" style={{ fontSize: `${fontSize || 16}px` }}>
       {textArr.map((item, index) => {
         if (item.type === 'text') {
           // 普通文本

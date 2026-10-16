@@ -230,6 +230,8 @@ onMounted(() => {
 .avatar-img {
   width: 80px;
   height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 .choose-picture {
   position: absolute;
@@ -255,7 +257,9 @@ onMounted(() => {
   display: flex;
   justify-content: space-around;
 }
-.avatar-img {
+/* 这里必须带上 .avatar-arr 前缀：无权限分支的大头像用的也是 .avatar-img，
+   裸写 .avatar-img{32px} 写在后面会把大头像一并压成 32px（react 侧写的就是 .avatar-arr .avatar-img） */
+.avatar-arr .avatar-img {
   width: 32px;
   height: 32px;
 }

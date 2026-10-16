@@ -171,6 +171,65 @@ let latestMessageResizeObserver: ResizeObserver | null = null;
 // “回到最新”入口上一次的判定结果（连带当时的滚动位置）
 let latestVisibilitySnapshot: { scrollTop: number; show: boolean } | null = null;
 
+// 触发“回到最新”判定的来源：layout=内容/尺寸变化，programmatic=程序滚动，restore=恢复位置，scroll=用户手动滚动
+type LatestVisibilitySource = "scroll" | "layout" | "restore" | "programmatic";
+// 是否跟随底部。用户在底部附近时为 true；此后内容变高（新消息、图片加载完成、标记提示出现等）会自动贴底
+let shouldStickToBottom = true;
+// 标记“这一帧内的滚动事件是程序触发的（scrollToBottom），不是用户手滑”
+let programmaticScrollFrame = 0;
+
+// 锚定后的“沉降期”：在这段时间内持续把锚点保持在视口中心。
+// 进入聊天页时消息列表会先渲染已有消息，随后被锚点分页整体替换（27→18→27 这类）并补拉更新消息，
+// 内容高度先缩后涨。若只在 +100ms 滚一次，中途的收缩会让浏览器把 scrollTop 夹到新的底部，
+// 内容再涨回来时锚点已经掉到视口外（scrollTop 停在中间），iOS 上尤其容易撞上。
+// 用户一触摸列表或主动回到最新就立刻停止，不做长期跟随。
+const ANCHOR_SETTLE_MS = 2000;
+let anchorSettleFrame = 0;
+let anchorSettleUntil = 0;
+
+/** 让锚点元素中心对齐滚动容器中心（自己算 scrollTop，不依赖浏览器对 scrollIntoView 的实现） */
+const centerAnchor = () => {
+  const container = messageListRef.value;
+  if (!container || !props.anchorMessageClientId) return;
+  const el = document.getElementById(
+    `${MSG_ID_FLAG}${props.anchorMessageClientId}`
+  );
+  if (!el) return;
+  const containerRect = container.getBoundingClientRect();
+  const elRect = el.getBoundingClientRect();
+  const delta = Math.round(
+    elRect.top +
+      elRect.height / 2 -
+      (containerRect.top + container.clientHeight / 2)
+  );
+  if (Math.abs(delta) > 1) {
+    container.scrollTop += delta;
+  }
+};
+
+const stopAnchorSettle = () => {
+  if (anchorSettleFrame) {
+    cancelAnimationFrame(anchorSettleFrame);
+    anchorSettleFrame = 0;
+  }
+  anchorSettleUntil = 0;
+};
+
+const startAnchorSettle = () => {
+  stopAnchorSettle();
+  anchorSettleUntil = performance.now() + ANCHOR_SETTLE_MS;
+  const tick = () => {
+    anchorSettleFrame = 0;
+    if (performance.now() > anchorSettleUntil) {
+      stopAnchorSettle();
+      return;
+    }
+    centerAnchor();
+    anchorSettleFrame = requestAnimationFrame(tick);
+  };
+  anchorSettleFrame = requestAnimationFrame(tick);
+};
+
 /**
  * 解析“回到最新”入口是否展示。
  * - 视口真的在底部（atLatest）时一定不展示；
@@ -206,13 +265,35 @@ const resolveLatestVisibility = (
   return show;
 };
 
-const updateLatestVisibility = () => {
+const updateLatestVisibility = (source: LatestVisibilitySource = "layout") => {
   if (!messageListRef.value) {
     props.onLatestVisibilityChange?.(false);
     return;
   }
-  const { scrollTop, scrollHeight, clientHeight } = messageListRef.value;
+  if (props.anchorMode) {
+    shouldStickToBottom = false;
+  }
+  const container = messageListRef.value;
+  // 贴底跟随：内容/尺寸变化（新消息、图片加载完成、标记提示 msg-pin-tip 出现等）时，
+  // 只要用户本来就在底部附近，就自动滚到最新，避免新增的内容被顶到屏幕外；
+  // 程序触发的滚动（scrollToBottom）无条件贴底。
+  if (
+    (source === "programmatic" ||
+      (source === "layout" && shouldStickToBottom)) &&
+    !props.isMultiSelecting &&
+    !props.isScrollLocked &&
+    !restoringScrollPosition.value
+  ) {
+    container.scrollTop = container.scrollHeight;
+  }
+  const { scrollTop, scrollHeight, clientHeight } = container;
   const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+  if (source === "programmatic") {
+    shouldStickToBottom = true;
+  } else if (source !== "layout") {
+    // 用户手动滚动 / 恢复位置后，按“是否真的在底部”刷新贴底状态
+    shouldStickToBottom = distanceFromBottom <= 1;
+  }
   // 位置口径：只表达“视口是否真的在列表底部”，不受消息内容高度影响，
   // 用于新消息提醒的计数与是否保持滚动位置。
   const atLatest = distanceFromBottom <= 1;
@@ -260,7 +341,7 @@ const restoreScrollPosition = (snapshot: MessageListScrollSnapshot | null) => {
     } else {
       container.scrollTop = snapshot.scrollTop;
     }
-    updateLatestVisibility();
+    updateLatestVisibility("restore");
     requestAnimationFrame(() => {
       restoringScrollPosition.value = false;
     });
@@ -277,7 +358,10 @@ const observeLatestMessage = () => {
     ? document.getElementById(`${MSG_ID_FLAG}${lastMsg.messageClientId}`)
     : null;
   if (lastElement) {
-    latestMessageResizeObserver = new ResizeObserver(updateLatestVisibility);
+    // 回调第一个参数是 entries（ResizeObserverEntry[]），不能直接当 source 传，这里固定为 layout
+    latestMessageResizeObserver = new ResizeObserver(() =>
+      updateLatestVisibility("layout")
+    );
     latestMessageResizeObserver.observe(lastElement);
   }
   updateLatestVisibility();
@@ -291,15 +375,23 @@ const scrollToBottom = (event?: unknown) => {
     restoringScrollPosition.value
   ) return;
   const options = event as { behavior?: ScrollBehavior } | undefined;
+  // 用户主动回到最新，结束锚点跟随
+  stopAnchorSettle();
   nextTick(() => {
     if (messageListRef.value) {
+      shouldStickToBottom = true;
+      cancelAnimationFrame(programmaticScrollFrame);
+      // 滚动事件在本帧结束前触发，借此把这批滚动事件识别为程序滚动而非用户滚动
+      programmaticScrollFrame = requestAnimationFrame(() => {
+        programmaticScrollFrame = 0;
+      });
       const top = messageListRef.value.scrollHeight;
       if (options?.behavior === "smooth") {
         messageListRef.value.scrollTo({ top, behavior: "smooth" });
       } else {
         messageListRef.value.scrollTop = top;
       }
-      updateLatestVisibility();
+      updateLatestVisibility("programmatic");
     }
   });
 };
@@ -315,6 +407,9 @@ const scrollToAnchor = () => {
     return false;
   }
   el.scrollIntoView({ block: "center" });
+  // 进入沉降期：页面刚打开时列表还会被锚点分页整体替换、并补拉更新消息，内容高度先缩后涨，
+  // 只滚一次容易在收缩那一下被浏览器夹到底部而丢掉锚点位置
+  startAnchorSettle();
   return true;
 };
 
@@ -386,7 +481,13 @@ const handleScroll = () => {
   }
 
   const { scrollTop, scrollHeight, clientHeight } = messageListRef.value;
-  updateLatestVisibility();
+  // 区分来源：恢复位置/程序滚动不应被当成“用户手动滚动”而取消贴底状态
+  const source: LatestVisibilitySource = restoringScrollPosition.value
+    ? "restore"
+    : programmaticScrollFrame
+      ? "programmatic"
+      : "scroll";
+  updateLatestVisibility(source);
   if (
     props.anchorMode &&
     props.onLoadNewer &&
@@ -404,6 +505,8 @@ const handleScroll = () => {
 
 // 点击消息列表
 const handleTapMessageList = () => {
+  // 用户触摸列表，结束锚点跟随
+  stopAnchorSettle();
   const activeElement = document.activeElement as HTMLElement;
   if (activeElement && activeElement.tagName === "INPUT") {
     activeElement.blur();
@@ -555,12 +658,14 @@ watch(
 );
 
 onUnmounted(() => {
+  stopAnchorSettle();
   emitter.off(events.ON_SCROLL_BOTTOM, scrollToBottom);
   emitter.off(events.ON_LOAD_MORE, onLoadMore);
   teamWatch();
   resizeObserver?.disconnect();
   resizeObserver = null;
   cancelAnimationFrame(resizeRafId);
+  cancelAnimationFrame(programmaticScrollFrame);
   latestMessageResizeObserver?.disconnect();
   latestMessageResizeObserver = null;
   if (onViewportResize) {

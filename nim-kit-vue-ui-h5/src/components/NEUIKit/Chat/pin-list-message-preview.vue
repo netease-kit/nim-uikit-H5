@@ -196,12 +196,30 @@ const handleVideoTouch = () => {
 </script>
 
 <style scoped>
+/* 外层不放 clamp（原因见下一条规则），这里只保留点击预览的手型光标 */
 .pin-message-preview-text {
+  cursor: pointer;
+}
+
+/*
+ * 内层 .msg-text 是子组件 message-text.vue 的根节点，且自身带 overflow-y: auto（滚动容器）。
+ * -webkit-line-clamp 只能截断「该元素自己布局出来的行」：子元素一旦成为滚动容器（overflow 非 visible），
+ * 它的行就不属于祖先的行盒，祖先的 clamp 对它是无效的 —— Chrome 实测：只在外层加 clamp 时会 4 行全展开。
+ * 所以三行截断统一落在 .msg-text 自己身上，不依赖外层。
+ * 与 react 侧 pin-list/index.less 的 `.pin-message-preview-text > .msg-text` 对齐：
+ * 用 :deep() 穿透 scoped，把 clamp 套到 .msg-text 自己身上（顺带用 overflow: hidden 覆盖它的 overflow-y）。
+ * max-height 不写：clamp 生效时高度由浏览器按行数自己算（实测加不加都是 60px = 3 行），
+ * 写死反而与 line-height 耦合，日后调行高忘改就会切到第三行。
+ * 注意必须写成 `> :deep(...)` 只命中子组件根节点 —— message-text.vue 内部的文本片段也是 .msg-text，
+ * 用后代选择器会把这些行内 span 变成块级，导致含 emoji / @ / 链接的多段文本被拆成多行。
+ */
+.pin-message-preview-text > :deep(.msg-text) {
   display: -webkit-box;
+  overflow: hidden;
+  line-height: 20px;
+  text-overflow: ellipsis;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  overflow: hidden;
-  cursor: pointer;
 }
 
 .pin-message-preview {

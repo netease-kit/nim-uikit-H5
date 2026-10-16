@@ -55,7 +55,9 @@ onUnmounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 9999;
+  /* 必须高于全屏弹层（FullScreenModal 是 10000），否则在转发选择器等全屏弹层里
+     弹出的提示会被盖住，表现为“操作了但没有任何提示”。react 侧 Toast 用的也是 10002 */
+  z-index: 10002;
   pointer-events: none;
 }
 

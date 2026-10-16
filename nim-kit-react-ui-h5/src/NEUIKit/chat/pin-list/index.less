@@ -103,25 +103,20 @@
   }
 
   .pin-message-preview-text {
-    display: -webkit-box;
-    overflow: hidden;
+    // 外层不放 clamp：内层 .msg-text 自带 overflow-y: auto（滚动容器），祖先的 clamp 截不到它的行
+    //（Chrome 实测：只在外层加 clamp 时会 4 行全展开）。三行截断见下面的 > .msg-text。
     cursor: pointer;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
 
+    // 三行截断落在 .msg-text 自己身上。
+    // 只用 line-clamp，不写死 max-height：高度由浏览器按行数算，避免日后改 line-height 时忘记同步而切到第三行。
     > .msg-text {
       display: -webkit-box;
-      max-height: 60px;
       overflow: hidden;
       overflow-y: hidden;
       line-height: 20px;
       text-overflow: ellipsis;
       -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
-    }
-
-    .msg-text {
-      overflow-y: hidden;
     }
   }
 

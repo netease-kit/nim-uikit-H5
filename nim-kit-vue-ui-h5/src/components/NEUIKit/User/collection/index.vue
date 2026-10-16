@@ -31,14 +31,18 @@
           </div>
         </div>
         <div class="collection-list-item-content">
-          <MessageText
+          <!-- 多包一层容器，和 react 侧结构一致：clamp 样式必须只作用在 MessageText 的根节点上。
+               若把类名直接挂在 MessageText 上，后代选择器会连内部的文本片段 span 一起命中，
+               它们被变成块级盒子后，表情就会被挤到下一行 -->
+          <div
             v-if="
               item.msg.messageType ===
               V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_TEXT
             "
             class="collection-message-preview collection-message-preview-text"
-            :msg="item.msg"
-          />
+          >
+            <MessageText :msg="item.msg" />
+          </div>
           <img
             v-else-if="
               item.msg.messageType ===
@@ -708,7 +712,7 @@ onMounted(() => {
   color: #3d4149;
 }
 
-.collection-message-preview-text :deep(.msg-text) {
+.collection-message-preview-text > :deep(.msg-text) {
   display: -webkit-box;
   max-height: 60px;
   overflow: hidden;

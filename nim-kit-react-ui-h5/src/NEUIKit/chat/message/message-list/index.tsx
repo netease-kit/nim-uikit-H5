@@ -98,6 +98,11 @@ const MessageList = observer(
     const restoringScrollPositionRef = useRef(false)
     const shouldStickToBottomRef = useRef(true)
     const programmaticScrollFrameRef = useRef(0)
+    // 锚定后的“沉降期”：锚定滚动成功后的一小段时间内持续把锚点保持在视口中心（见 startAnchorSettle）
+    const ANCHOR_SETTLE_MS = 2000
+    const anchorSettleFrameRef = useRef(0)
+    const anchorSettleUntilRef = useRef(0)
+    const anchorSettleIdRef = useRef('')
     const onLoadMoreRef = useRef<() => void>(() => undefined)
     const pendingPaginationRef = useRef<{
       direction: 'older' | 'newer'
@@ -271,6 +276,8 @@ const MessageList = observer(
         return
       }
       const options = event as { behavior?: ScrollBehavior } | undefined
+      // 用户主动回到最新，结束锚点跟随
+      stopAnchorSettle()
       if (messageListRef.current) {
         shouldStickToBottomRef.current = true
         cancelAnimationFrame(programmaticScrollFrameRef.current)
@@ -287,11 +294,57 @@ const MessageList = observer(
       }
     }
 
+    // 锚定后的“沉降期”：在这段时间内持续把锚点保持在视口中心。
+    // 进入聊天页时消息列表会先渲染已有消息，随后被锚点分页整体替换（27→18→27 这类）并补拉更新消息，
+    // 内容高度先缩后涨。若只在 +100ms 滚一次，中途的收缩会让浏览器把 scrollTop 夹到新的底部，
+    // 内容再涨回来时锚点已经掉到视口外（scrollTop 停在中间），iOS 上尤其容易撞上。
+    // 用户一触摸列表或主动回到最新就立刻停止，不做长期跟随。
+    const centerAnchor = () => {
+      const container = messageListRef.current
+      const anchorId = anchorSettleIdRef.current
+      if (!container || !anchorId) return
+      const el = document.getElementById(`${MSG_ID_FLAG}${anchorId}`)
+      if (!el) return
+      const containerRect = container.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      const delta = Math.round(elRect.top + elRect.height / 2 - (containerRect.top + container.clientHeight / 2))
+      if (Math.abs(delta) > 1) {
+        container.scrollTop += delta
+      }
+    }
+
+    const stopAnchorSettle = () => {
+      if (anchorSettleFrameRef.current) {
+        cancelAnimationFrame(anchorSettleFrameRef.current)
+        anchorSettleFrameRef.current = 0
+      }
+      anchorSettleUntilRef.current = 0
+    }
+
+    const startAnchorSettle = (anchorId: string) => {
+      stopAnchorSettle()
+      anchorSettleIdRef.current = anchorId
+      anchorSettleUntilRef.current = performance.now() + ANCHOR_SETTLE_MS
+      const tick = () => {
+        anchorSettleFrameRef.current = 0
+        if (performance.now() > anchorSettleUntilRef.current) {
+          stopAnchorSettle()
+          return
+        }
+        centerAnchor()
+        anchorSettleFrameRef.current = requestAnimationFrame(tick)
+      }
+      anchorSettleFrameRef.current = requestAnimationFrame(tick)
+    }
+
     const scrollToAnchor = () => {
       if (!anchorMessageClientId) return false
       const el = document.getElementById(`${MSG_ID_FLAG}${anchorMessageClientId}`)
       if (!el) return false
       el.scrollIntoView({ block: 'center' })
+      // 进入沉降期：页面刚打开时列表还会被锚点分页整体替换、并补拉更新消息，内容高度先缩后涨，
+      // 只滚一次容易在收缩那一下被浏览器夹到底部而丢掉锚点位置
+      startAnchorSettle(anchorMessageClientId)
       return true
     }
 
@@ -373,6 +426,8 @@ const MessageList = observer(
      * 处理点击消息列表
      */
     const handleTapMessageList = () => {
+      // 用户触摸列表，结束锚点跟随
+      stopAnchorSettle()
       // 点击消息列表时让输入框失焦
       const activeElement = document.activeElement as HTMLElement
       if (activeElement && activeElement.id === 'msg-input') {
@@ -502,6 +557,9 @@ const MessageList = observer(
         observer.disconnect()
         cancelAnimationFrame(rafId)
         cancelAnimationFrame(programmaticScrollFrameRef.current)
+        cancelAnimationFrame(anchorSettleFrameRef.current)
+        anchorSettleFrameRef.current = 0
+        anchorSettleUntilRef.current = 0
         window.visualViewport?.removeEventListener('resize', onViewportResize)
       }
     }, [])

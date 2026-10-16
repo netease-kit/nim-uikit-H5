@@ -305,17 +305,6 @@ import { toast } from "../../utils/toast";
 import type { V2NIMMessageForUI } from "@xkit-yx/im-store-v2/dist/types/src/types";
 import { sendMergedForwardMessage } from "./merged-forward/utils";
 import { friendGroupByPy } from "../../utils/friend";
-import emitter from "../../utils/eventBus";
-import { events } from "../../utils/constants";
-
-// 双 rAF 后触发滚动到底部，确保 Vue 重渲染 + 浏览器 layout 完成后再滚动
-const scrollChatToBottom = () => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      emitter.emit(events.ON_SCROLL_BOTTOM);
-    });
-  });
-};
 
 const RECENT_FORWARDS_KEY = "nim_recent_forwards_v2";
 const MAX_RECENT_FORWARDS = 5;
@@ -410,6 +399,19 @@ const showSelectedModal = ref(false);
 // 最近会话数据：通过 API 主动拉取，存到 ref 中
 const conversationList = ref<any[]>([]);
 
+// 最近转发数据源：localStorage 不是响应式的，必须先落到 ref 上，
+// 否则 computed 求值一次后就一直用缓存（原因见 syncRecentForwards 的注释）
+const recentForwardRaw = ref<RecentForwardItem[]>([]);
+
+// 重读最近转发（localStorage → ref）
+// 单条转发的选择器实例是常驻的：它挂在每个 message-bubble 上随消息列表一起创建，
+// 不随开关销毁，而 localStorage 的变化不会让 computed 失效，所以必须在每次打开时主动重读一次；
+// 多选转发的实例是 v-if 按需挂载的，所以会出现“多选能看到、单条转发看不到”的差异
+// （react 两个入口都是按需挂载，不存在这个问题）
+const syncRecentForwards = () => {
+  recentForwardRaw.value = getRecentForwards(myAccountId.value);
+};
+
 // 好友列表（过滤黑名单，按拼音排序，与通讯录顺序一致）
 const friendList = ref<ForwardTarget[]>([]);
 const friendListWatch = autorun(() => {
@@ -455,9 +457,9 @@ const recentList = computed(() => {
   });
 });
 
-// 最近转发：纯 localStorage，用 API 拉取到的 conversationList 匹配并补充名称
+// 最近转发：数据来自 localStorage（recentForwardRaw），用 API 拉取到的 conversationList 匹配并补充名称
 const recentForwards = computed(() => {
-  const rawList = getRecentForwards(myAccountId.value);
+  const rawList = recentForwardRaw.value;
   return rawList.map((rf) => {
     const conv = conversationList.value.find((c: any) =>
       nim?.V2NIMConversationIdUtil.parseConversationTargetId(c.conversationId) === rf.id
@@ -505,6 +507,8 @@ watch(
       currentTab.value = "recent";
       multiSelect.value = false;
       selectedIds.value = [];
+      // 每次打开都重读最近转发，保证任何入口进来都能看到最新的最近转发列表
+      syncRecentForwards();
       const loaderPromise = store?.sdkOptions?.enableV2CloudConversation
         ? store?.conversationStore?.getConversationListActive(0, 100)
         : store?.localConversationStore?.getConversationListActive?.(0, 100);
@@ -624,20 +628,8 @@ const handleForwardConfirm = (forwardComment: string) => {
       .then(() => {
         toast.info(t("forwardSuccessText"));
         emit("forwardSuccess");
-        // 若目标包含当前会话，转发消息会出现在当前聊天页，需滚动到底部展示新消息
-        if (
-          targets.some((target) => {
-            const convId = nim.V2NIMConversationIdUtil[
-              target.type ===
-              V2NIMConst.V2NIMConversationType.V2NIM_CONVERSATION_TYPE_P2P
-                ? "p2pConversationId"
-                : "teamConversationId"
-            ](target.id);
-            return convId === conversationId.value;
-          })
-        ) {
-          scrollChatToBottom();
-        }
+        // 不主动滚到底部：转发到当前会话时，新消息由 message-list 的贴底跟随处理（用户在底部附近才贴底），
+        // 这样查看历史消息时能保住原位置、只做新消息提示。react 侧同样不在这里滚动。
       })
       .catch(() => {
         toast.info(t("forwardFailedText"));
@@ -656,6 +648,7 @@ const handleForwardConfirm = (forwardComment: string) => {
             name: target.name,
           }, myAccountId.value);
         });
+        syncRecentForwards();
         forwardTargets.value = [];
         handleClose();
       });
@@ -700,10 +693,8 @@ const handleForwardConfirm = (forwardComment: string) => {
     .then(() => {
       toast.info(t("forwardSuccessText"));
       emit("forwardSuccess");
-      // 转发到当前会话时，新消息会出现在当前聊天页，需滚动到底部展示
-      if (forwardConversationId === conversationId.value) {
-        scrollChatToBottom();
-      }
+      // 不主动滚到底部：转发到当前会话时，新消息由 message-list 的贴底跟随处理（用户在底部附近才贴底），
+      // 这样查看历史消息时能保住原位置、只做新消息提示。react 侧同样不在这里滚动。
     })
     .catch(() => {
       toast.info(t("forwardFailedText"));
@@ -722,6 +713,7 @@ const handleForwardConfirm = (forwardComment: string) => {
         },
         myAccountId.value
       );
+      syncRecentForwards();
       handleClose();
     });
 };

@@ -1,6 +1,6 @@
 {
   "name": "im-kit-vue-ui-h5",
-  "version": "10.4.0-alpha.1",
+  "version": "10.4.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -423,7 +423,14 @@
           ></Icon>
           <text class="msg-action-btn-text">{{ t("deleteText") }}</text>
         </div>
-        <div class="msg-action-btn" @click="handleRecallMsg">
+        <div
+          v-if="
+            props.msg.messageType !==
+            V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL
+          "
+          class="msg-action-btn"
+          @click="handleRecallMsg"
+        >
           <Icon
             :size="18"
             color="#656A72"
@@ -611,41 +618,29 @@ const getBubbleClass = (directionClass: string) => [
     "msg-bg-image": isImageMsg.value,
   },
 ];
+// 操作面板的列数由按钮数量决定（--action-columns），少算一个按钮面板就会因为列数不足而换行。
+// 因此这里每一项都必须和模板里实际渲染的条件保持一致，顺序也与模板一致。
 const normalActionCount = computed(() => {
-  let count = 1;
-  if (
+  const isCallMsg =
     props.msg.messageType ===
-    V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_TEXT
-  ) {
-    count += 1;
-  }
-  if (
-    props.msg.messageType !==
-    V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL
-  ) {
-    count += 1;
-  }
-  if (
-    props.msg.messageType !==
-      V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO &&
-    props.msg.messageType !==
-      V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL
-  ) {
-    count += 1;
-  }
-  if (props.msg.isSelf) {
-    count += 1;
-  }
-  if (isUnconvertedVoiceMsg.value) {
-    count += 1;
-  }
-  if (canPinMsg.value) {
-    count += 1;
-  }
-  if (canCollectMsg.value) {
-    count += 1;
-  }
-  return count;
+    V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL;
+  const isAudioMsg =
+    props.msg.messageType ===
+    V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO;
+  const isTextMsg =
+    props.msg.messageType ===
+    V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_TEXT;
+  return (
+    (isTextMsg ? 1 : 0) + // 复制
+    (!isCallMsg ? 1 : 0) + // 回复
+    (!isAudioMsg && !isCallMsg ? 1 : 0) + // 转发
+    (canPinMsg.value ? 1 : 0) + // 标记/取消标记
+    1 + // 删除
+    (props.msg.isSelf && !isCallMsg ? 1 : 0) + // 撤回（话单消息不展示）
+    1 + // 多选
+    (isUnconvertedVoiceMsg.value ? 1 : 0) + // 语音转文字
+    (canCollectMsg.value ? 1 : 0) // 收藏
+  );
 });
 
 const actionGroupStyle = (count: number) => ({

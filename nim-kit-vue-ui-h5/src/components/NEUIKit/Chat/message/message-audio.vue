@@ -233,10 +233,21 @@ onUnmounted(() => {
 .message-audio-container {
   display: flex;
   flex-direction: column;
+  /* 默认靠头像侧：收到的语音（audio-in）靠左。不能依赖默认的 align-items: stretch ——
+     语音条有内联固定宽度，转文字后长文本会把容器撑宽，语音条就会被留在左侧，
+     自己发送的消息（头像在右）看起来离头像很远。 */
+  align-items: flex-start;
+}
+
+/* 自己发送的语音条要贴着右侧头像 */
+.message-audio-container .audio-out {
+  align-self: flex-end;
 }
 
 .voice-text-container {
   margin-top: 4px;
+  /* 文字区仍占满容器宽度，保证分割线跨度与改造前一致 */
+  align-self: stretch;
 }
 
 .voice-text-divider {

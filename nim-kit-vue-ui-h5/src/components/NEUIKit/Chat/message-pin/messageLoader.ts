@@ -736,7 +736,14 @@ export const createChatMessageLoader = ({
         prevLoginStatus = curLoginStatus;
       };
 
-      msgs.value = [];
+      // 重连（loginStatus 由断开变回已登录）时不能清空消息列表：
+      // 清空会让滚动容器的内容瞬间塌陷、scrollTop 被夹回 0，随后回填历史/最新一页也不会恢复滚动位置，
+      // 表现为"自动滚动到最后一页消息的第一条"。
+      // 只在首次加载时清空（切换会话会新建 loader，其 hasLoadedInitial 仍为 false，清空逻辑不受影响），
+      // 与 react 侧 useChatMessageLoader 的 `conversationChanged || !hasLoadedInitialRef.current` 判断对齐。
+      if (!hasLoadedInitial.value) {
+        msgs.value = [];
+      }
       hasOlder.value = true;
       hasNewer.value = false;
       anchorMode.value = false;

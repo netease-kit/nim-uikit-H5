@@ -446,16 +446,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = observer(({ msg, tooltipVisi
   const isVoiceConverted = msg.messageType === V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO && 
     voiceTextMap.has(msg.messageClientId as string)
   const getActionGroupStyle = (count: number) => ({ '--action-columns': Math.max(1, Math.min(count, 4)) } as React.CSSProperties)
+  // 操作面板的列数由按钮数量决定（--action-columns），少算一个按钮面板就会因为列数不足而换行。
+  // 因此这里每一项都必须和下方实际渲染的条件保持一致，顺序也与渲染顺序一致。
   const normalActionCount =
-    (msg.messageType === V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_TEXT ? 1 : 0) +
-    (msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL ? 1 : 0) +
-    (msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO && msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL ? 1 : 0) +
-    1 +
-    (msg.isSelf ? 1 : 0) +
-    1 +
-    (msg.messageType === V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO && !isVoiceConverted ? 1 : 0) +
-    (canOperatePin(msg) ? 1 : 0) +
-    (canCollectMessage(msg) ? 1 : 0)
+    (msg.messageType === V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_TEXT ? 1 : 0) + // 复制
+    (msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL ? 1 : 0) + // 回复
+    (msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO && msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL ? 1 : 0) + // 转发
+    (canOperatePin(msg) || isMergedForwardMsg(store, msg) ? 1 : 0) + // 标记/取消标记
+    1 + // 删除
+    (msg.isSelf && msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL ? 1 : 0) + // 撤回（话单消息不展示）
+    1 + // 多选
+    (msg.messageType === V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_AUDIO && !isVoiceConverted ? 1 : 0) + // 语音转文字
+    (canCollectMessage(msg) || isMergedForwardMsg(store, msg) ? 1 : 0) // 收藏
 
   // 渲染正常消息的操作菜单
   const renderActionMenu = () => {
@@ -510,7 +512,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = observer(({ msg, tooltipVisi
           <span className="msg-action-btn-text">{t('deleteText')}</span>
         </div>
 
-        {msg.isSelf && (
+        {msg.isSelf && msg.messageType !== V2NIMConst.V2NIMMessageType.V2NIM_MESSAGE_TYPE_CALL && (
           <div className="msg-action-btn" onClick={handleRecallMsg}>
             <Icon size={18} style={{ color: '#656A72' }} iconClassName="msg-action-btn-icon" type="icon-chehui" />
             <span className="msg-action-btn-text">{t('recallText')}</span>
